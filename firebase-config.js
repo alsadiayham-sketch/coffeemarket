@@ -19,7 +19,7 @@
     }
 
     var rawDb = firebase.firestore();
-    var PROJECT_ID = 'drenasshop';
+    var PROJECT_ID = 'coffeemarket';
     var projectRef = rawDb.collection('projects').doc(PROJECT_ID);
 
     var db = {

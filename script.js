@@ -4,8 +4,8 @@ var products = [];
 var discounts = [];
 var siteSettings = normalizeSettings(DEFAULT_SITE_SETTINGS);
 var currentFilter = 'all';
-var cart = normalizeCartItems(JSON.parse(localStorage.getItem('drenasshop_cart') || '[]'), normalizeProducts(DEFAULT_PRODUCTS));
-var deliveryMethod = localStorage.getItem('drenasshop_delivery_method') || 'delivery';
+var cart = normalizeCartItems(JSON.parse(localStorage.getItem('coffeemarket_cart') || '[]'), normalizeProducts(DEFAULT_PRODUCTS));
+var deliveryMethod = localStorage.getItem('coffeemarket_delivery_method') || 'delivery';
 var currentPDPProduct = null;
 var currentPDPSizeIdx = 0;
 var pdpQty = 1;
@@ -937,12 +937,12 @@ function updateCheckoutLink(total) {
 }
 
 function saveCart() {
-    localStorage.setItem('drenasshop_cart', JSON.stringify(normalizeCartItems(cart, products.length ? products : normalizeProducts(DEFAULT_PRODUCTS))));
+    localStorage.setItem('coffeemarket_cart', JSON.stringify(normalizeCartItems(cart, products.length ? products : normalizeProducts(DEFAULT_PRODUCTS))));
 }
 
 function setDeliveryMethod(method) {
     deliveryMethod = method;
-    localStorage.setItem('drenasshop_delivery_method', method);
+    localStorage.setItem('coffeemarket_delivery_method', method);
     var pickupBtn = document.getElementById('optPickup');
     var deliveryBtn = document.getElementById('optDelivery');
     if (pickupBtn) pickupBtn.classList.toggle('active', method === 'pickup');

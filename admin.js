@@ -1,4 +1,4 @@
-﻿var ADMIN_USER = 'enas';
+﻿var ADMIN_USER = 'coffee';
 var ADMIN_PASS = '5555';
 var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%234a2c17%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-size=%2730%27 fill=%27%23d4a574%27%3E☕%3C/text%3E%3C/svg%3E";
 
@@ -18,7 +18,7 @@ var adminReady = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    if (sessionStorage.getItem('drenasshop_admin') === 'true') {
+    if (sessionStorage.getItem('coffeemarket_admin') === 'true') {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
         initializeAdmin();
@@ -57,7 +57,7 @@ function handleLogin(event) {
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
-        sessionStorage.setItem('drenasshop_admin', 'true');
+        sessionStorage.setItem('coffeemarket_admin', 'true');
         initializeAdmin();
     } else {
         document.getElementById('loginError').textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
@@ -65,7 +65,7 @@ function handleLogin(event) {
 }
 
 function logout() {
-    sessionStorage.removeItem('drenasshop_admin');
+    sessionStorage.removeItem('coffeemarket_admin');
     unsubscribers.forEach(function (unsubscribe) { if (typeof unsubscribe === 'function') unsubscribe(); });
     location.reload();
 }
