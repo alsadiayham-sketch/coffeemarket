@@ -3,14 +3,21 @@
 var DEFAULT_DISCOUNTS = [];
 
 var DEFAULT_SITE_SETTINGS = {
-    whatsappNumber: '970595170026',
-    heroSubtitle: 'منتجات عناية بالبشرة والجسم والشعر بأعلى جودة',
+    whatsappNumber: '972598633659',
+    heroSubtitle: 'أجود أنواع القهوة والمشروبات الساخنة',
     aboutText: 'سوق القهوه - وجهتك لأفضل أنواع القهوة العربية والتركية والإسبريسو.\nنقدم لكم تشكيلة واسعة من حبوب القهوة الطازجة والمطحونة،\nبالإضافة إلى أدوات تحضير القهوة وإكسسواراتها.\nزورونا في نابلس أو اطلبوا أونلاين.',
     instagramLink: 'https://www.facebook.com/people/%D8%B3%D9%88%D9%82-%D8%A7%D9%84%D9%82%D9%87%D9%88%D9%87-coffee-market/100063675067039/',
     tiktokLink: ''
 };
 
-var BRANDS_DATA = [{ name: 'AXIS-Y', logo: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=100&h=100&fit=crop' }, { name: 'Beauty of Joseon', logo: 'https://images.unsplash.com/photo-1570194065650-d99fb4ee7cde?w=100&h=100&fit=crop' }, { name: 'I LOVE', logo: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop' }, { name: 'Neat', logo: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=100&h=100&fit=crop' }, { name: 'VT Cosmetics', logo: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?w=100&h=100&fit=crop' }, { name: 'Hoppa', logo: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=100&h=100&fit=crop' }, { name: 'SESDERMA', logo: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop' }, { name: 'BioBalance', logo: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=100&h=100&fit=crop' }];
+var BRANDS_DATA = [
+  { name: 'قهوة عربية', logo: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=100&h=100&fit=crop' },
+  { name: 'قهوة تركية', logo: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=100&h=100&fit=crop' },
+  { name: 'إسبريسو', logo: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=100&h=100&fit=crop' },
+  { name: 'قهوة مختصة', logo: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop' },
+  { name: 'أدوات القهوة', logo: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=100&h=100&fit=crop' },
+  { name: 'مشروبات فورية', logo: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=100&h=100&fit=crop' }
+];
 
 function normalizeSizeEntry(entry) {
     if (!entry) return { size: '-', unit: 'cm', price: 0 };
