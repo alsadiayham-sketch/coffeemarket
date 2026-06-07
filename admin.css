@@ -213,3 +213,24 @@ html, body { font-family: 'Tajawal', sans-serif; background: #faf9f7; color: #1a
     accent-color: #000000;
     cursor: pointer;
 }
+/* Hero Slides Admin */
+.hero-slides-list { display: flex; flex-direction: column; gap: 12px; padding: 1rem 0; }
+.hero-slide-card { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #fff; border: 1px solid rgba(13,13,13,0.1); border-radius: 8px; }
+.hero-slide-preview { flex-shrink: 0; }
+.hero-slide-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.hero-slide-info strong { font-size: 0.95rem; }
+.hero-slide-info span { font-size: 0.8rem; color: #666; }
+.hero-slide-actions { display: flex; gap: 8px; }
+.btn-edit-sm, .btn-delete-sm { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+.btn-edit-sm { background: var(--gold, #b8860b); color: #fff; }
+.btn-delete-sm { background: #dc3545; color: #fff; }
+
+.upload-hint { font-size: 0.78rem; color: #888; margin-top: 4px; }
+#heroUploadProgress { text-align: center; }
+#heroUploadProgress span { font-size: 0.85rem; color: #666; display: block; margin-bottom: 4px; }
+
+.hero-slide-card { cursor: grab; transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s; }
+.hero-slide-card.dragging { opacity: 0.4; transform: scale(0.95); }
+.hero-slide-card.drag-over { box-shadow: 0 0 0 2px var(--gold, #b8860b); transform: scale(1.02); }
+.hero-slide-drag-handle { font-size: 1.3rem; color: #aaa; cursor: grab; padding: 0 8px; display: flex; align-items: center; user-select: none; }
+.hero-slide-drag-handle:active { cursor: grabbing; }

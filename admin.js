@@ -77,6 +77,7 @@ function switchTab(tab, button) {
     if (button) button.classList.add('active');
     if (tab === 'dashboard') renderDashboard();
     if (tab === 'orders') renderOrdersTable();
+    if (tab === 'hero') loadHeroSlides();
 }
 
 async function initializeAdmin() {
@@ -710,5 +711,291 @@ async function uploadProductImage(file, productId) {
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+    });
+}
+// ===== Hero Slides Management =====
+var heroSlides = [];
+var heroUploadedDataUrl = '';
+
+function loadHeroSlides() {
+    if (!window.db) return;
+    db.collection('heroDisplay').orderBy('order', 'asc').get().then(function(snapshot) {
+        heroSlides = snapshot.docs.map(function(doc) { var d = doc.data(); d._id = doc.id; return d; });
+        renderHeroSlidesList();
+    });
+}
+
+function renderHeroSlidesList() {
+    var container = document.getElementById('heroSlidesList');
+    if (!container) return;
+    if (!heroSlides.length) {
+        container.innerHTML = '<p style="text-align:center;color:#888;padding:2rem;">لا توجد سلايدات. أضف سلايد جديد.</p>';
+        return;
+    }
+    container.innerHTML = heroSlides.map(function(slide, idx) {
+        var preview = '<img src="' + slide.url + '" style="width:120px;height:70px;object-fit:cover;border-radius:6px;" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">';
+        return '<div class="hero-slide-card" draggable="true" data-slide-id="' + slide._id + '" data-slide-idx="' + idx + '">' +
+            '<div class="hero-slide-drag-handle">⠿</div>' +
+            '<div class="hero-slide-preview">' + preview + '</div>' +
+            '<div class="hero-slide-info">' +
+            '<strong>' + (slide.title || '(بدون عنوان)') + '</strong>' +
+            '<span>' + (slide.type === 'video' ? 'GIF متحرك' : 'صورة') + ' • ترتيب: ' + (slide.order || 0) + '</span>' +
+            '</div>' +
+            '<div class="hero-slide-actions">' +
+            '<button onclick="editHeroSlide(\'' + slide._id + '\')" class="btn-edit-sm">تعديل</button>' +
+            '<button onclick="deleteHeroSlide(\'' + slide._id + '\')" class="btn-delete-sm">حذف</button>' +
+            '</div></div>';
+    }).join('');
+    initHeroSlidesDragDrop();
+}
+
+var heroDragSrcIdx = null;
+function initHeroSlidesDragDrop() {
+    var container = document.getElementById('heroSlidesList');
+    var cards = container.querySelectorAll('.hero-slide-card');
+    cards.forEach(function(card) {
+        card.addEventListener('dragstart', function(e) {
+            heroDragSrcIdx = parseInt(card.getAttribute('data-slide-idx'));
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', function() {
+            card.classList.remove('dragging');
+            container.querySelectorAll('.hero-slide-card').forEach(function(c) { c.classList.remove('drag-over'); });
+        });
+        card.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', function() {
+            card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', function(e) {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            var targetIdx = parseInt(card.getAttribute('data-slide-idx'));
+            if (heroDragSrcIdx === null || heroDragSrcIdx === targetIdx) return;
+            reorderHeroSlides(heroDragSrcIdx, targetIdx);
+            heroDragSrcIdx = null;
+        });
+    });
+}
+
+function reorderHeroSlides(fromIdx, toIdx) {
+    var moved = heroSlides.splice(fromIdx, 1)[0];
+    heroSlides.splice(toIdx, 0, moved);
+    // Update order field for all slides (starting at 1)
+    var batch = db.batch();
+    heroSlides.forEach(function(slide, i) {
+        slide.order = i + 1;
+        var ref = db.collection('heroDisplay').doc(slide._id);
+        batch.update(ref, { order: i + 1 });
+    });
+    batch.commit().then(function() {
+        renderHeroSlidesList();
+    }).catch(function(err) { alert('خطأ: ' + err.message); });
+}
+
+function toggleHeroUploadHint() {
+    var type = document.getElementById('heroSlideType').value;
+    var hint = document.getElementById('heroUploadHint');
+    var fileInput = document.getElementById('heroSlideFile');
+    if (type === 'video') {
+        hint.textContent = 'ارفع فيديو (سيتم تحويله إلى GIF متحرك)';
+        fileInput.accept = 'video/*';
+    } else {
+        hint.textContent = 'ارفع صورة';
+        fileInput.accept = 'image/*';
+    }
+}
+
+function handleHeroFileUpload(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var type = document.getElementById('heroSlideType').value;
+
+    if (type === 'video' || file.type.startsWith('video/')) {
+        document.getElementById('heroSlideType').value = 'video';
+        convertVideoToGif(file);
+    } else {
+        // Image: convert to base64
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            // Resize image
+            var img = new Image();
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var maxW = 1200;
+                var scale = Math.min(1, maxW / img.width);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                heroUploadedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                document.getElementById('heroUploadPreview').innerHTML = '<img src="' + heroUploadedDataUrl + '" style="max-width:200px;max-height:120px;border-radius:6px;">';
+                document.getElementById('heroSlideUrl').value = '';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function convertVideoToGif(file) {
+    var progressEl = document.getElementById('heroUploadProgress');
+    var progressBar = document.getElementById('heroGifProgress');
+    var previewEl = document.getElementById('heroUploadPreview');
+    var saveBtn = document.getElementById('heroSaveBtn');
+    progressEl.style.display = 'block';
+    previewEl.innerHTML = '';
+    saveBtn.disabled = true;
+    heroUploadedDataUrl = '';
+
+    var video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    var url = URL.createObjectURL(file);
+    video.src = url;
+
+    video.addEventListener('loadedmetadata', function() {
+        var duration = Math.min(video.duration, 4); // Max 4 seconds
+        var width = 320;
+        var height = Math.round((video.videoHeight / video.videoWidth) * width);
+        var fps = 8;
+        var totalFrames = Math.floor(duration * fps);
+
+        var gif = new GIF({
+            workers: 2,
+            quality: 20,
+            width: width,
+            height: height,
+            workerScript: 'gif.worker.js'
+        });
+
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        var frameIndex = 0;
+
+        function captureFrame() {
+            if (frameIndex >= totalFrames) {
+                progressBar.value = 90;
+                gif.render();
+                return;
+            }
+            var time = (frameIndex / fps);
+            video.currentTime = time;
+        }
+
+        video.addEventListener('seeked', function onSeeked() {
+            ctx.drawImage(video, 0, 0, width, height);
+            gif.addFrame(ctx, { copy: true, delay: 1000 / fps });
+            frameIndex++;
+            progressBar.value = Math.round((frameIndex / totalFrames) * 80);
+            captureFrame();
+        });
+
+        gif.on('finished', function(blob) {
+            URL.revokeObjectURL(url);
+            progressEl.style.display = 'none';
+            saveBtn.disabled = false;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                heroUploadedDataUrl = e.target.result;
+                previewEl.innerHTML = '<img src="' + heroUploadedDataUrl + '" style="max-width:200px;max-height:120px;border-radius:6px;">';
+                document.getElementById('heroSlideUrl').value = '';
+            };
+            reader.readAsDataURL(blob);
+        });
+
+        video.currentTime = 0;
+        captureFrame();
+    });
+
+    video.load();
+}
+
+function openHeroSlideModal(id) {
+    document.getElementById('heroSlideId').value = '';
+    document.getElementById('heroSlideType').value = 'image';
+    document.getElementById('heroSlideUrl').value = '';
+    document.getElementById('heroSlideTitle').value = '';
+    document.getElementById('heroSlideSubtitle').value = '';
+    document.getElementById('heroSlideOrder').value = heroSlides.length + 1;
+    document.getElementById('heroSlideFile').value = '';
+    document.getElementById('heroUploadPreview').innerHTML = '';
+    document.getElementById('heroUploadProgress').style.display = 'none';
+    document.getElementById('heroSaveBtn').disabled = false;
+    heroUploadedDataUrl = '';
+    document.getElementById('heroSlideModalTitle').textContent = 'إضافة سلايد';
+    document.getElementById('heroSlideModal').style.display = 'flex';
+}
+
+function editHeroSlide(id) {
+    var slide = heroSlides.find(function(s) { return s._id === id; });
+    if (!slide) return;
+    document.getElementById('heroSlideId').value = id;
+    document.getElementById('heroSlideType').value = slide.type || 'image';
+    document.getElementById('heroSlideUrl').value = slide.url || '';
+    document.getElementById('heroSlideTitle').value = slide.title || '';
+    document.getElementById('heroSlideSubtitle').value = slide.subtitle || '';
+    document.getElementById('heroSlideOrder').value = slide.order || 0;
+    document.getElementById('heroSlideFile').value = '';
+    document.getElementById('heroUploadPreview').innerHTML = slide.url ? '<img src="' + slide.url + '" style="max-width:200px;max-height:120px;border-radius:6px;">' : '';
+    document.getElementById('heroUploadProgress').style.display = 'none';
+    document.getElementById('heroSaveBtn').disabled = false;
+    heroUploadedDataUrl = '';
+    document.getElementById('heroSlideModalTitle').textContent = 'تعديل سلايد';
+    document.getElementById('heroSlideModal').style.display = 'flex';
+}
+
+function saveHeroSlide(event) {
+    event.preventDefault();
+    var id = document.getElementById('heroSlideId').value;
+    var slideUrl = heroUploadedDataUrl || document.getElementById('heroSlideUrl').value;
+    if (!slideUrl) { alert('يرجى رفع ملف أو إدخال رابط'); return; }
+
+    // Check if base64 data exceeds Firestore limit (~1MB)
+    if (slideUrl.startsWith('data:') && slideUrl.length > 1000000) {
+        alert('الملف كبير جداً (' + Math.round(slideUrl.length/1024) + 'KB). يرجى رفع ملف أصغر أو فيديو أقصر.');
+        return;
+    }
+
+    var saveBtn = document.getElementById('heroSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'يتم الحفظ...';
+
+    var type = document.getElementById('heroSlideType').value;
+    // If video was uploaded, it's now a GIF, so store as image type
+    var storeType = (type === 'video' && heroUploadedDataUrl) ? 'image' : type;
+
+    var data = {
+        type: storeType,
+        url: slideUrl,
+        title: document.getElementById('heroSlideTitle').value,
+        subtitle: document.getElementById('heroSlideSubtitle').value,
+        order: parseInt(document.getElementById('heroSlideOrder').value) || 0
+    };
+    var promise = id ? db.collection('heroDisplay').doc(id).update(data) : db.collection('heroDisplay').add(data);
+    promise.then(function() {
+        heroUploadedDataUrl = '';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'حفظ';
+        closeModal('heroSlideModal');
+        loadHeroSlides();
+    }).catch(function(err) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'حفظ';
+        alert('خطأ: ' + err.message);
+    });
+}
+
+function deleteHeroSlide(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا السلايد؟')) return;
+    db.collection('heroDisplay').doc(id).delete().then(function() {
+        loadHeroSlides();
     });
 }

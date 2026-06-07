@@ -246,38 +246,63 @@ function renderProducts(productsToShow) {
         return;
     }
 
-    productsToShow.forEach(function (product) {
-        var sizeData = getSizeData(product, 0);
-        var pricing = getFinalPrice(product, 0, discounts);
-        var statusBadge = getStatusBadge(product.status);
-        var discountBadge = pricing.hasDiscount ? '<span class="discount-badge">-' + pricing.discountPercent + '%</span>' : '';
-        var soldOutClass = product.status === 'soldout' ? 'sold-out' : '';
-        var sizeSelector = product.sizes && product.sizes.length > 1
-            ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">الحجم:</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
-            : '';
+    // Group products by category
+    var groups = {};
+    var categoryOrder = [];
+    productsToShow.forEach(function(product) {
+        var cat = product.category || 'أخرى';
+        if (!groups[cat]) {
+            groups[cat] = [];
+            categoryOrder.push(cat);
+        }
+        groups[cat].push(product);
+    });
 
-        var card = document.createElement('div');
-        card.className = 'product-card ' + soldOutClass;
-        card.dataset.productId = String(product.id);
-        card.innerHTML = [
-            discountBadge,
-            statusBadge,
-            '<div class="product-image" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
-            '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">',
-            '</div>',
-            '<div class="product-info" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
-            '<span class="product-brand">' + product.brand + '</span>',
-            '<h3>' + product.name + '</h3>',
-            '<div class="product-meta"><span>' + product.category + '</span></div>',
-            '<div class="product-price" id="productPrice-' + product.id + '">' + getPriceHTML(pricing) + '</div>',
-            '</div>',
-            '<div class="product-card-controls">' + sizeSelector + '</div>',
-            '<div class="product-card-actions">',
-            '<div class="qty-selector qty-sm" id="qty-' + product.id + '"><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', -1)">−</button><span id="cardQty-' + product.id + '">1</span><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', 1)">+</button></div>',
-            '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (product.status === 'soldout' ? 'disabled' : '') + '>' + (product.status === 'soldout' ? 'نفذت الكمية' : 'أضف') + '</button>',
-            '</div>'
-        ].join('');
-        grid.appendChild(card);
+    // Check if we're showing a single category (filter active)
+    var isSingleCategory = categoryOrder.length === 1 && currentFilter !== 'all' && currentFilter !== 'bestseller' && currentFilter !== 'special' && currentFilter !== 'soldout';
+
+    categoryOrder.forEach(function(category) {
+        // Add category header (unless single-category filter)
+        if (!isSingleCategory) {
+            var header = document.createElement('div');
+            header.className = 'products-category-header';
+            header.innerHTML = '<h3>' + category + '</h3>';
+            grid.appendChild(header);
+        }
+
+        groups[category].forEach(function(product) {
+            var sizeData = getSizeData(product, 0);
+            var pricing = getFinalPrice(product, 0, discounts);
+            var statusBadge = getStatusBadge(product.status);
+            var discountBadge = pricing.hasDiscount ? '<span class="discount-badge">-' + pricing.discountPercent + '%</span>' : '';
+            var soldOutClass = product.status === 'soldout' ? 'sold-out' : '';
+            var sizeSelector = product.sizes && product.sizes.length > 1
+                ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">الحجم:</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
+                : '';
+
+            var card = document.createElement('div');
+            card.className = 'product-card ' + soldOutClass;
+            card.dataset.productId = String(product.id);
+            card.innerHTML = [
+                discountBadge,
+                statusBadge,
+                '<div class="product-image" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
+                '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">',
+                '</div>',
+                '<div class="product-info" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
+                '<span class="product-brand">' + product.brand + '</span>',
+                '<h3>' + product.name + '</h3>',
+                '<div class="product-meta"><span>' + product.category + '</span></div>',
+                '<div class="product-price" id="productPrice-' + product.id + '">' + getPriceHTML(pricing) + '</div>',
+                '</div>',
+                '<div class="product-card-controls">' + sizeSelector + '</div>',
+                '<div class="product-card-actions">',
+                '<div class="qty-selector qty-sm" id="qty-' + product.id + '"><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', -1)">−</button><span id="cardQty-' + product.id + '">1</span><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', 1)">+</button></div>',
+                '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (product.status === 'soldout' ? 'disabled' : '') + '>' + (product.status === 'soldout' ? 'نفذت الكمية' : 'أضف') + '</button>',
+                '</div>'
+            ].join('');
+            grid.appendChild(card);
+        });
     });
 }
 
@@ -409,7 +434,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
 window.addEventListener('scroll', function () {
     var navbar = document.getElementById('navbar');
     if (!navbar) return;
-    navbar.style.boxShadow = window.scrollY > 50 ? '0 4px 20px rgba(0,0,0,0.1)' : '0 2px 10px rgba(0,0,0,0.05)';
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
 });
 
 
@@ -960,14 +985,14 @@ function renderHeroSlider(slides) {
     var html = slides.map(function(slide, idx) {
         var media = '';
         if (slide.type === 'video') {
-            media = '<video src="' + slide.url + '" muted playsinline' + (idx === 0 ? ' autoplay' : '') + ' style="width:100%;height:75vh;object-fit:cover;" onended="goHeroSlide(' + ((idx + 1) % slides.length) + ')"></video>';
+            media = '<video src="' + slide.url + '" muted playsinline loop' + (idx === 0 ? ' autoplay' : '') + ' style="width:100%;height:100vh;object-fit:cover;" onended="goHeroSlide(' + ((idx + 1) % slides.length) + ')"></video>';
         } else {
-            media = '<img src="' + slide.url + '" alt="' + (slide.title || '') + '" style="width:100%;height:75vh;object-fit:cover;">';
+            media = '<img src="' + slide.url + '" alt="' + (slide.title || '') + '" style="width:100%;height:100vh;object-fit:cover;">';
         }
         return '<div class="hero-slide' + (idx === 0 ? ' active' : '') + '">' + media +
             '<div class="hero-overlay"><div class="hero-content">' +
             (slide.title ? '<h2>' + slide.title + '</h2>' : '') +
-            (slide.subtitle ? '<p>' + slide.subtitle + '</p>' : '') +
+            (slide.subtitle ? '<p class="hero-subtitle">' + slide.subtitle + '</p>' : '') +
             '<a href="#products" class="btn-primary">تسوق الآن</a>' +
             '</div></div></div>';
     }).join('');

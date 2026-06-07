@@ -29,6 +29,7 @@
                     <button class="tab-btn active" onclick="switchTab('dashboard', this)">لوحة المعلومات</button>
                     <button class="tab-btn" onclick="switchTab('products', this)">المنتجات</button>
                     <button class="tab-btn" onclick="switchTab('orders', this)">الطلبات</button>
+                    <button class="tab-btn" onclick="switchTab('hero', this)">السلايدر</button>
                     <button class="tab-btn" onclick="switchTab('settings', this)">الإعدادات</button>
                 </div>
                 <button class="logout-btn" onclick="logout()">خروج</button>
@@ -112,6 +113,14 @@
             </div>
         </div>
 
+        <div class="tab-content" id="tab-hero">
+            <div class="tab-header">
+                <h3>إدارة السلايدر</h3>
+                <button class="btn-add" onclick="openHeroSlideModal()">+ إضافة سلايد</button>
+            </div>
+            <div class="hero-slides-list" id="heroSlidesList"></div>
+        </div>
+
         <div class="tab-content" id="tab-settings">
             <div class="tab-header"><h3>إعدادات الموقع</h3></div>
             <form class="settings-form" onsubmit="event.preventDefault(); saveSettingsForm(event)">
@@ -169,6 +178,29 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="heroSlideModal" style="display:none;">
+        <div class="modal small-modal">
+            <h3 id="heroSlideModalTitle">إضافة سلايد</h3>
+            <form onsubmit="event.preventDefault(); saveHeroSlide(event)">
+                <input type="hidden" id="heroSlideId">
+                <div class="form-group"><label>النوع</label><select id="heroSlideType" onchange="toggleHeroUploadHint()"><option value="image">صورة</option><option value="video">فيديو (يتحول لـ GIF)</option></select></div>
+                <div class="form-group">
+                    <label>رفع ملف</label>
+                    <input type="file" id="heroSlideFile" accept="image/*,video/*" onchange="handleHeroFileUpload(this)">
+                    <p class="upload-hint" id="heroUploadHint">ارفع صورة أو فيديو (يتم تحويل الفيديو إلى GIF متحرك)</p>
+                    <div id="heroUploadPreview" style="margin-top:8px;"></div>
+                    <div id="heroUploadProgress" style="display:none;margin-top:8px;"><span>جاري تحويل الفيديو...</span><progress id="heroGifProgress" value="0" max="100" style="width:100%;"></progress></div>
+                </div>
+                <div class="form-group"><label>أو رابط مباشر (URL)</label><input type="url" id="heroSlideUrl" placeholder="https://..."></div>
+                <div class="form-group"><label>العنوان (اختياري)</label><input type="text" id="heroSlideTitle"></div>
+                <div class="form-group"><label>الوصف (اختياري)</label><input type="text" id="heroSlideSubtitle"></div>
+                <div class="form-group"><label>الترتيب</label><input type="number" id="heroSlideOrder" value="0" min="0"></div>
+                <div class="modal-actions"><button type="submit" class="btn-save" id="heroSaveBtn">حفظ</button><button type="button" class="btn-cancel" onclick="closeModal('heroSlideModal')">إلغاء</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
