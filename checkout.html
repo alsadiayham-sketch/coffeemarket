@@ -112,6 +112,14 @@
 
         document.addEventListener('DOMContentLoaded', initializeCheckout);
 
+        window.addEventListener('pageshow', function (event) {
+            var lastOrder = localStorage.getItem('coffeemarket_last_order');
+            var cartData = JSON.parse(localStorage.getItem('coffeemarket_cart') || '[]');
+            if (lastOrder && cartData.length === 0) {
+                window.location.href = 'confirmation.html';
+            }
+        });
+
         function initializeCheckout() {
             cart = normalizeCartItems(JSON.parse(localStorage.getItem('coffeemarket_cart') || '[]'), products);
             saveCart();
