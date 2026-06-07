@@ -11,12 +11,9 @@ var DEFAULT_SITE_SETTINGS = {
 };
 
 var BRANDS_DATA = [
-  { name: 'قهوة عربية', logo: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=100&h=100&fit=crop' },
-  { name: 'قهوة تركية', logo: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=100&h=100&fit=crop' },
-  { name: 'إسبريسو', logo: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=100&h=100&fit=crop' },
-  { name: 'قهوة مختصة', logo: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop' },
-  { name: 'أدوات القهوة', logo: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=100&h=100&fit=crop' },
-  { name: 'مشروبات فورية', logo: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=100&h=100&fit=crop' }
+  { name: 'Dolce Gusto', logo: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=100&h=100&fit=crop' },
+  { name: 'Lavazza', logo: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=100&h=100&fit=crop' },
+  { name: 'Coffee Market', logo: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop' }
 ];
 
 function normalizeSizeEntry(entry) {
