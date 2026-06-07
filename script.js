@@ -19,7 +19,6 @@ var storeLoadState = {
 
 document.addEventListener('DOMContentLoaded', function () {
     saveCart();
-    renderBrands();
     setupSearch('navSearchInput', 'navSearchDropdown');
     setupSearch('productsSearchInput', 'productsSearchDropdown');
 initializeOrderTracking();
@@ -358,22 +357,10 @@ function createFilterButton(value) {
 
 function renderFilters() {
     var categories = Array.from(new Set(products.map(function (product) { return product.category; })));
-    var brands = Array.from(new Set(products.map(function (product) { return product.brand; })));
     var catContainer = document.getElementById('categoryFilters');
-    var brandContainer = document.getElementById('brandFilters');
-    if (!catContainer || !brandContainer) return;
+    if (!catContainer) return;
     catContainer.innerHTML = '';
-    brandContainer.innerHTML = '';
     categories.forEach(function (category) { catContainer.appendChild(createFilterButton(category)); });
-    brands.forEach(function (brand) { brandContainer.appendChild(createFilterButton(brand)); });
-}
-
-function renderBrands() {
-    var grid = document.getElementById('brandsGrid');
-    if (!grid) return;
-    grid.innerHTML = BRANDS_DATA.map(function (brand) {
-        return '<img src="' + brand.logo + '" alt="' + brand.name + '" class="brand-logo" title="' + brand.name + '" onerror="this.style.display=\'none\'">';
-    }).join('');
 }
 
 function setupSearch(inputId, dropdownId) {
