@@ -1,21 +1,21 @@
 /* ===== Variables ===== */
 :root {
-    --primary: #3b2a1a;
-    --primary-light: #5c3d24;
-    --primary-lighter: #f7f0d8;
-    --primary-dark: #2a1c10;
-    --accent: #c8a045;
-    --accent-dark: #a07c28;
-    --gold: #c8a045;
-    --bg: #efe4b0;
-    --bg-alt: #e5d89c;
-    --text: #3b2a1a;
-    --text-light: #6b5340;
+    --primary: #0d0d0d;
+    --primary-light: #4a4a4a;
+    --primary-lighter: #faf9f7;
+    --primary-dark: #000000;
+    --accent: #b8860b;
+    --accent-dark: #8b6508;
+    --gold: #b8860b;
+    --bg: #faf9f7;
+    --bg-alt: #f0ece4;
+    --text: #0d0d0d;
+    --text-light: #4a4a4a;
     --white: #ffffff;
-    --shadow: 0 4px 20px rgba(59,42,26,0.08);
-    --shadow-hover: 0 10px 30px rgba(59,42,26,0.15);
+    --shadow: 0 22px 70px rgba(13,13,13,0.1);
+    --shadow-hover: 0 10px 30px rgba(13,13,13,0.15);
     --radius: 16px;
-    --transition: all 0.3s ease;
+    --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ===== Reset ===== */
@@ -664,7 +664,7 @@ body.has-banner .mobile-menu { top: 102px; }
 /* ===== Contact ===== */
 .contact-section {
     padding: 80px 0;
-    background: linear-gradient(135deg, #fdf8e8, #fafaf8);
+    background: linear-gradient(135deg, var(--bg-alt), var(--bg));
 }
 
 .social-links {
@@ -1126,12 +1126,16 @@ html[dir="rtl"] .pdp-image { border-radius: 0 20px 20px 0; }
     font-size: 1.1rem;
     margin-bottom: 15px;
     color: var(--text);
+    text-align: center;
 }
 
 .pdp-related-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    justify-items: center;
 }
 
 .pdp-related-item {
@@ -1389,7 +1393,7 @@ html[dir="rtl"] .pdp-image { border-radius: 0 20px 20px 0; }
 }
 .store-notice.warning { background: #fef3c7; color: #92400e; }
 .store-notice.error { background: #fee2e2; color: #b91c1c; }
-.store-notice.info { background: #fdf8e8; color: #6d28d9; }
+.store-notice.info { background: var(--bg-alt); color: #6d28d9; }
 .empty-products {
     grid-column: 1 / -1;
     background: var(--bg-alt);

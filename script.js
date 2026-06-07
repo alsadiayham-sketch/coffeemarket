@@ -252,9 +252,9 @@ function renderProducts(productsToShow) {
         var statusBadge = getStatusBadge(product.status);
         var discountBadge = pricing.hasDiscount ? '<span class="discount-badge">-' + pricing.discountPercent + '%</span>' : '';
         var soldOutClass = product.status === 'soldout' ? 'sold-out' : '';
-        var sizeSelector = product.sizes.length > 1
+        var sizeSelector = product.sizes && product.sizes.length > 1
             ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">الحجم:</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
-            : '<div class="card-size-single"><span>الحجم:</span><strong>' + getSizeLabel(sizeData) + '</strong></div>';
+            : '';
 
         var card = document.createElement('div');
         card.className = 'product-card ' + soldOutClass;
@@ -268,7 +268,7 @@ function renderProducts(productsToShow) {
             '<div class="product-info" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
             '<span class="product-brand">' + product.brand + '</span>',
             '<h3>' + product.name + '</h3>',
-            '<div class="product-meta"><span>' + product.category + '</span><span class="product-size" id="productSize-' + product.id + '">' + getSizeLabel(sizeData) + '</span></div>',
+            '<div class="product-meta"><span>' + product.category + '</span></div>',
             '<div class="product-price" id="productPrice-' + product.id + '">' + getPriceHTML(pricing) + '</div>',
             '</div>',
             '<div class="product-card-controls">' + sizeSelector + '</div>',
@@ -372,7 +372,7 @@ function setupSearch(inputId, dropdownId) {
         } else {
             dropdown.innerHTML = results.map(function (product) {
                 var pricing = getFinalPrice(product, 0, discounts);
-                return '<div class="search-item" onclick="scrollToProduct(\'' + product.id + '\')"><img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><div class="search-item-info"><h4>' + product.name + '</h4><span>' + product.brand + ' • ' + product.category + ' • ' + getSizeLabel(getSizeData(product, 0)) + ' • ' + formatCurrency(pricing.final) + '</span></div></div>';
+                return '<div class="search-item" onclick="scrollToProduct(\'' + product.id + '\')"><img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><div class="search-item-info"><h4>' + product.name + '</h4><span>' + product.brand + ' • ' + product.category + ' • ' + formatCurrency(pricing.final) + '</span></div></div>';
             }).join('');
         }
         dropdown.classList.add('active');
@@ -884,9 +884,8 @@ function renderCart() {
         if (item.type === 'custom_package') return renderCustomPackageCartItem(item);
         var product = products.find(function (entry) { return entry.id === item.id; });
         if (!product) return '';
-        var sizeData = getSizeData(product, item.sizeIdx);
         var pricing = getFinalPrice(product, item.sizeIdx, discounts);
-        return '<div class="cart-item"><img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><div class="cart-item-info"><h4>' + product.name + '</h4><span class="cart-item-brand">' + product.brand + ' • ' + getSizeLabel(sizeData) + '</span><div class="cart-item-price">' + formatCurrency(pricing.final * item.qty) + '</div></div><div class="cart-item-qty"><button onclick="updateCartQty(\'' + item.id + '\', ' + item.sizeIdx + ', -1)">−</button><span>' + item.qty + '</span><button onclick="updateCartQty(\'' + item.id + '\', ' + item.sizeIdx + ', 1)">+</button></div><button class="cart-item-remove" onclick="removeFromCart(\'' + item.id + '\', ' + item.sizeIdx + ')">✕</button></div>';
+        return '<div class="cart-item"><img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><div class="cart-item-info"><h4>' + product.name + '</h4><span class="cart-item-brand">' + product.brand + '</span><div class="cart-item-price">' + formatCurrency(pricing.final * item.qty) + '</div></div><div class="cart-item-qty"><button onclick="updateCartQty(\'' + item.id + '\', ' + item.sizeIdx + ', -1)">−</button><span>' + item.qty + '</span><button onclick="updateCartQty(\'' + item.id + '\', ' + item.sizeIdx + ', 1)">+</button></div><button class="cart-item-remove" onclick="removeFromCart(\'' + item.id + '\', ' + item.sizeIdx + ')">✕</button></div>';
     }).join('');
 
     updateCheckoutLink(updateCartTotal());
@@ -1077,7 +1076,7 @@ function renderPDPSizeOptions() {
     var container = document.getElementById('pdpSizes');
     if (!currentPDPProduct || !section || !container) return;
 
-    if (currentPDPProduct.sizes.length <= 1) {
+    if (!currentPDPProduct || !Array.isArray(currentPDPProduct.sizes) || currentPDPProduct.sizes.length <= 1) {
         section.style.display = 'none';
         container.innerHTML = '';
         return;
@@ -1099,7 +1098,7 @@ function updatePDPDisplay() {
     if (!currentPDPProduct) return;
     var sizeData = getSizeData(currentPDPProduct, currentPDPSizeIdx);
     var pricing = getFinalPrice(currentPDPProduct, currentPDPSizeIdx, discounts);
-    document.getElementById('pdpMeta').innerHTML = '<span>' + currentPDPProduct.category + '</span><span>' + getSizeLabel(sizeData) + '</span>';
+    document.getElementById('pdpMeta').innerHTML = '<span>' + currentPDPProduct.category + '</span>';
     document.getElementById('pdpPrice').innerHTML = (pricing.hasDiscount ? '<span class="original-price">' + formatCurrency(pricing.original) + '</span>' : '') + '<span class="final-price">' + formatCurrency(pricing.final) + '</span>';
 }
 
