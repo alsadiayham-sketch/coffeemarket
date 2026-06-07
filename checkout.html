@@ -112,10 +112,16 @@
 
         document.addEventListener('DOMContentLoaded', initializeCheckout);
 
-        window.addEventListener('pageshow', function (event) {
-            var lastOrder = localStorage.getItem('coffeemarket_last_order');
-            var cartData = JSON.parse(localStorage.getItem('coffeemarket_cart') || '[]');
-            if (lastOrder && cartData.length === 0) {
+        window.addEventListener('pageshow', function () {
+            if (localStorage.getItem('coffeemarket_pending_confirmation') === '1') {
+                localStorage.removeItem('coffeemarket_pending_confirmation');
+                window.location.href = 'confirmation.html';
+            }
+        });
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && localStorage.getItem('coffeemarket_pending_confirmation') === '1') {
+                localStorage.removeItem('coffeemarket_pending_confirmation');
                 window.location.href = 'confirmation.html';
             }
         });
@@ -430,10 +436,10 @@
         function showOrderSuccess(order) {
             localStorage.setItem('coffeemarket_last_order', JSON.stringify(order));
             localStorage.setItem('coffeemarket_cart', '[]');
+            localStorage.setItem('coffeemarket_pending_confirmation', '1');
             cart = [];
             var whatsappUrl = buildWhatsAppUrl(siteSettings.whatsappNumber || '970595170026', buildWhatsAppMessage(order));
-            window.open(whatsappUrl, '_blank');
-            window.location.href = 'confirmation.html';
+            window.location.href = whatsappUrl;
         }
 
         function confirmOrder() {
