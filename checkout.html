@@ -428,8 +428,12 @@
         }
 
         function showOrderSuccess(order) {
+            localStorage.setItem('coffeemarket_last_order', JSON.stringify(order));
+            localStorage.setItem('coffeemarket_cart', '[]');
+            cart = [];
             var whatsappUrl = buildWhatsAppUrl(siteSettings.whatsappNumber || '970595170026', buildWhatsAppMessage(order));
-            window.location.href = whatsappUrl;
+            window.open(whatsappUrl, '_blank');
+            window.location.href = 'confirmation.html';
         }
 
         function confirmOrder() {
@@ -448,6 +452,26 @@
             button.disabled = true;
             button.textContent = 'جاري حفظ الطلب...';
             setStatus('جاري حفظ الطلب...', '');
+
+            // Check stock availability
+            var unavailable = [];
+            cart.forEach(function (item) {
+                if (item.type === 'custom_package') return;
+                var product = products.find(function (entry) { return entry.id === item.id; });
+                if (!product) return;
+                if (product.status === 'soldout' || (product.quantity !== undefined && product.quantity !== null && product.quantity <= 0)) {
+                    unavailable.push(product.name);
+                } else if (product.quantity !== undefined && product.quantity !== null && item.qty > product.quantity) {
+                    unavailable.push(product.name + ' (متوفر فقط ' + product.quantity + ')');
+                }
+            });
+            if (unavailable.length > 0) {
+                alert('المنتجات التالية غير متوفرة بالكمية المطلوبة:\n- ' + unavailable.join('\n- '));
+                button.disabled = false;
+                button.textContent = originalText;
+                setStatus('');
+                return;
+            }
 
             try {
                 var order = buildOrder();
@@ -469,9 +493,6 @@
             }
 
             db.collection('orders').doc(order.id).set(order).then(function () {
-                localStorage.setItem('coffeemarket_last_order', JSON.stringify(order));
-                localStorage.setItem('coffeemarket_cart', '[]');
-                cart = [];
                 showOrderSuccess(order);
             }).catch(function (error) {
                 console.error('Firestore save error:', error);

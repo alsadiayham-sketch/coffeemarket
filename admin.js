@@ -300,6 +300,7 @@ function openProductModal(product) {
     document.getElementById('productImageFile').value = '';
     document.getElementById('imagePreview').innerHTML = product && product.image ? '<img src="' + product.image + '" onerror="this.style.display=\'none\'">' : '';
     document.getElementById('productStatus').value = product ? product.status : 'normal';
+    document.getElementById('productQuantity').value = product && product.quantity !== undefined && product.quantity !== null ? product.quantity : '';
     renderSizeRows(product ? product.sizes : [createEmptySize()]);
     document.getElementById('brandsList').innerHTML = Array.from(new Set(products.map(function (entry) { return entry.brand; }))).map(function (brand) { return '<option value="' + brand + '">'; }).join('');
     document.getElementById('categoriesList').innerHTML = Array.from(new Set(products.map(function (entry) { return entry.category; }))).map(function (category) { return '<option value="' + category + '">'; }).join('');
@@ -338,6 +339,7 @@ async function saveProduct(event) {
         imageUrl = await uploadProductImage(fileInput.files[0], nextId);
     }
 
+    var qtyVal = document.getElementById('productQuantity').value.trim();
     var productData = normalizeProduct({
         id: nextId,
         name: document.getElementById('productName').value.trim(),
@@ -348,6 +350,12 @@ async function saveProduct(event) {
         image: imageUrl,
         status: document.getElementById('productStatus').value
     });
+    if (qtyVal !== '') {
+        productData.quantity = Math.max(0, parseInt(qtyVal, 10) || 0);
+        if (productData.quantity === 0) productData.status = 'soldout';
+    } else {
+        productData.quantity = null;
+    }
 
     setAdminLoading(true);
     await db.collection('products').doc(String(productData.id)).set(productData, { merge: false });

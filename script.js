@@ -1,5 +1,11 @@
 var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%234a2c17%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-size=%2730%27 fill=%27%23d4a574%27%3E☕%3C/text%3E%3C/svg%3E";
 
+function isOutOfStock(product) {
+    if (product.status === 'soldout') return true;
+    if (product.quantity !== undefined && product.quantity !== null && product.quantity <= 0) return true;
+    return false;
+}
+
 var products = [];
 var discounts = [];
 var siteSettings = normalizeSettings(DEFAULT_SITE_SETTINGS);
@@ -273,7 +279,7 @@ function renderProducts(productsToShow) {
             var pricing = getFinalPrice(product, 0, discounts);
             var statusBadge = getStatusBadge(product.status);
             var discountBadge = pricing.hasDiscount ? '<span class="discount-badge">-' + pricing.discountPercent + '%</span>' : '';
-            var soldOutClass = product.status === 'soldout' ? 'sold-out' : '';
+            var soldOutClass = isOutOfStock(product) ? 'sold-out' : '';
             var sizeSelector = product.sizes && product.sizes.length > 1
                 ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">الحجم:</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
                 : '';
@@ -296,7 +302,7 @@ function renderProducts(productsToShow) {
                 '<div class="product-card-controls">' + sizeSelector + '</div>',
                 '<div class="product-card-actions">',
                 '<div class="qty-selector qty-sm" id="qty-' + product.id + '"><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', -1)">−</button><span id="cardQty-' + product.id + '">1</span><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', 1)">+</button></div>',
-                '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (product.status === 'soldout' ? 'disabled' : '') + '>' + (product.status === 'soldout' ? 'نفذت الكمية' : 'أضف') + '</button>',
+                '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (isOutOfStock(product) ? 'disabled' : '') + '>' + (isOutOfStock(product) ? 'نفذت الكمية' : 'أضف') + '</button>',
                 '</div>'
             ].join('');
             grid.appendChild(card);
@@ -695,7 +701,7 @@ function getSelectedCardSizeIndex(productId) {
 function addToCart(event, productId) {
     event.stopPropagation();
     var product = products.find(function (entry) { return entry.id === productId; });
-    if (!product || product.status === 'soldout') return;
+    if (!product || isOutOfStock(product)) return;
 
     var qty = parseInt(document.getElementById('cardQty-' + productId).textContent, 10) || 1;
     var sizeIdx = getSelectedCardSizeIndex(productId);
@@ -971,7 +977,7 @@ function openPDP(productId) {
     updatePDPDisplay();
 
     var addBtn = document.getElementById('pdpAddBtn');
-    if (product.status === 'soldout') {
+    if (isOutOfStock(product)) {
         addBtn.textContent = 'نفذت الكمية';
         addBtn.disabled = true;
         addBtn.style.background = '#9ca3af';
@@ -1056,7 +1062,7 @@ function changePDPQty(delta) {
 }
 
 function addFromPDP() {
-    if (!currentPDPProduct || currentPDPProduct.status === 'soldout') return;
+    if (!currentPDPProduct || isOutOfStock(currentPDPProduct)) return;
 
     var pricing = getFinalPrice(currentPDPProduct, currentPDPSizeIdx, discounts);
     var existing = cart.find(function (item) { return item.id === currentPDPProduct.id && item.sizeIdx === currentPDPSizeIdx; });
