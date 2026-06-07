@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     saveCart();
     setupSearch('navSearchInput', 'navSearchDropdown');
     setupSearch('productsSearchInput', 'productsSearchDropdown');
-initializeOrderTracking();
     updateCartBadge();
     updateCheckoutLink(cart.length ? updateCartTotal() : 0);
     setDeliveryMethod(deliveryMethod);
@@ -687,78 +686,6 @@ function getOrderStatusLabel(status) {
     }
 }
 
-function renderTrackedOrderItem(item) {
-    if (item.type === 'custom_package') {
-        return '<div class="tracking-order-item">'
-            + '<div class="tracking-order-item-head"><h5>' + getCustomPackageTitle(item) + '</h5><span class="tracking-order-price">السعر يحدد لاحقاً</span></div>'
-            + '<span class="tracking-order-extra">لون التغليف: ' + getWrapperColorLabel(item.wrapperColor) + '</span>'
-            + '<div class="custom-package-sets">' + getCustomPackageSetsHtml(item.sets) + '</div>'
-            + '<span class="tracking-order-extra">طريقة الاستلام: ' + getCustomPackageDeliveryLabel(item) + '</span>'
-            + '<span class="tracking-order-extra">الاسم: ' + escapeHtml(item.customerName || '') + ' • الهاتف: ' + escapeHtml(item.customerPhone || '') + '</span>'
-            + ((item.delivery === 'delivery' && item.customerLocation) ? '<span class="tracking-order-extra">الموقع: ' + escapeHtml(item.customerLocation) + '</span>' : '')
-            + (item.notes ? '<span class="tracking-order-note">ملاحظات: ' + escapeHtml(item.notes) + '</span>' : '')
-            + '</div>';
-    }
-    return '<div class="tracking-order-item">'
-        + '<div class="tracking-order-item-head"><h5>' + escapeHtml(item.name) + '</h5><span class="tracking-order-price">' + formatCurrency(item.lineTotal) + '</span></div>'
-        + '<span class="tracking-order-details">' + escapeHtml(item.brand || '') + ' • ' + escapeHtml(item.sizeLabel || '') + ' • الكمية ' + (parseInt(item.qty, 10) || 1) + '</span>'
-        + '</div>';
-}
-
-function renderTrackedOrder(order) {
-    var result = document.getElementById('orderTrackingResult');
-    if (!result) return;
-    var totalItems = (Array.isArray(order.items) ? order.items : []).reduce(function (sum, item) {
-        return sum + Math.max(1, parseInt(item.qty, 10) || 1);
-    }, 0);
-    var totalText = order.totalDisplay || getTotalDisplayText(order.total, !!order.pricingPending);
-    result.innerHTML = '<div class="tracking-result-card">'
-        + '<div class="tracking-result-head"><div><h4>الطلب ' + escapeHtml(order.id) + '</h4><p>' + formatDateTime(order.date) + '</p></div><span class="tracking-status">' + getOrderStatusLabel(order.status) + '</span></div>'
-        + '<div class="tracking-order-items">' + (order.items || []).map(function (item) { return renderTrackedOrderItem(item); }).join('') + '</div>'
-        + '<div class="tracking-order-summary">'
-        + '<div class="tracking-order-summary-row"><span>عدد المنتجات</span><strong>' + totalItems + '</strong></div>'
-        + '<div class="tracking-order-summary-row"><span>الإجمالي</span><strong>' + totalText + '</strong></div>'
-        + '<div class="tracking-order-summary-row"><span>الحالة</span><strong>' + getOrderStatusLabel(order.status) + '</strong></div>'
-        + '</div></div>';
-}
-
-function trackOrder() {
-    var input = document.getElementById('orderTrackingInput');
-    var result = document.getElementById('orderTrackingResult');
-    if (!input || !result) return;
-    var orderId = (input.value || '').trim();
-    if (!orderId) {
-        result.innerHTML = '<div class="order-tracking-message error">أدخلي رقم الطلب أولاً.</div>';
-        return;
-    }
-    if (!window.db) {
-        result.innerHTML = '<div class="order-tracking-message error">تعذر الاتصال بقاعدة البيانات حالياً.</div>';
-        return;
-    }
-    result.innerHTML = '<div class="order-tracking-message">جاري البحث عن الطلب...</div>';
-    db.collection('orders').doc(orderId).get().then(function (docSnap) {
-        if (!docSnap.exists) {
-            result.innerHTML = '<div class="order-tracking-message error">لم يتم العثور على طلب بهذا الرقم.</div>';
-            return;
-        }
-        var order = docSnap.data() || {};
-        order.id = docSnap.id;
-        renderTrackedOrder(order);
-    }).catch(function () {
-        result.innerHTML = '<div class="order-tracking-message error">تعذر جلب بيانات الطلب حالياً. حاولي مرة أخرى.</div>';
-    });
-}
-
-function initializeOrderTracking() {
-    var input = document.getElementById('orderTrackingInput');
-    if (!input) return;
-    input.addEventListener('keypress', function (event) {
-        if (event.keyCode === 13) {
-            event.preventDefault();
-            trackOrder();
-        }
-    });
-}
 
 function getSelectedCardSizeIndex(productId) {
     var select = document.getElementById('sizeSelect-' + productId);

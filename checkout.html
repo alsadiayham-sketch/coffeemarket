@@ -186,7 +186,7 @@
                 var sizeData = getSizeData(product, item.sizeIdx);
                 var pricing = getFinalPrice(product, item.sizeIdx, discounts);
                 var lineTotal = pricing.final * item.qty;
-                return '<div class="checkout-item"><img src="' + product.image + '" alt="' + product.name + '"><div class="checkout-item-info"><h4>' + product.name + '</h4><span class="item-brand">' + product.brand + '</span><span class="item-size">' + getSizeLabel(sizeData) + '</span></div><div class="checkout-item-qty"><button onclick="changeQty(' + item.id + ', ' + item.sizeIdx + ', -1)">−</button><span>' + item.qty + '</span><button onclick="changeQty(' + item.id + ', ' + item.sizeIdx + ', 1)">+</button></div><div class="checkout-item-price">' + formatCurrency(lineTotal) + '</div><button class="checkout-item-remove" onclick="removeItem(' + item.id + ', ' + item.sizeIdx + ')">✕</button></div>';
+                return '<div class="checkout-item"><img src="' + product.image + '" alt="' + product.name + '"><div class="checkout-item-info"><h4>' + product.name + '</h4><span class="item-brand">' + product.brand + '</span><span class="item-size">' + getSizeLabel(sizeData) + '</span></div><div class="checkout-item-qty"><button onclick="changeQty(\'' + item.id + '\', ' + item.sizeIdx + ', -1)">−</button><span>' + item.qty + '</span><button onclick="changeQty(\'' + item.id + '\', ' + item.sizeIdx + ', 1)">+</button></div><div class="checkout-item-price">' + formatCurrency(lineTotal) + '</div><button class="checkout-item-remove" onclick="removeItem(\'' + item.id + '\', ' + item.sizeIdx + ')">✕</button></div>';
             }).join('');
 
             var subtotal = getSubtotal();
@@ -347,6 +347,18 @@
                         };
                     }
                     var product = products.find(function (entry) { return entry.id === item.id; });
+                    if (!product) {
+                        return {
+                            productId: item.id,
+                            name: 'منتج غير متوفر',
+                            brand: '',
+                            sizeIdx: item.sizeIdx,
+                            sizeLabel: '',
+                            qty: item.qty,
+                            price: item.price || 0,
+                            lineTotal: (item.price || 0) * item.qty
+                        };
+                    }
                     var sizeData = getSizeData(product, item.sizeIdx);
                     var pricing = getFinalPrice(product, item.sizeIdx, discounts);
                     return {
@@ -407,19 +419,8 @@
         }
 
         function showOrderSuccess(order) {
-            var container = document.getElementById('checkoutContent');
             var whatsappUrl = buildWhatsAppUrl(siteSettings.whatsappNumber || '970595170026', buildWhatsAppMessage(order));
-            var html = '';
-            html += '<div class="checkout-success-card">';
-            html += '<h3>تم حفظ طلبك بنجاح</h3>';
-            html += '<div class="checkout-success-order-id">رقم الطلب: ' + order.id + '</div>';
-            html += '<p>يمكنك الآن إرسال الطلب عبر واتساب بشكل اختياري، أو العودة مباشرة إلى صفحة التأكيد والمتجر.</p>';
-            html += '<div class="checkout-success-actions">';
-            html += '<a href="' + whatsappUrl + '" target="_blank" rel="noopener" class="btn-success-whatsapp">إرسال عبر واتساب</a>';
-            html += '<button type="button" class="btn-success-back" onclick="window.location.href=\'confirmation.html\'">تم، عودة للمتجر</button>';
-            html += '</div></div>';
-            container.innerHTML = html;
-            setStatus('تم حفظ الطلب بنجاح. رقم الطلب: ' + order.id, 'success');
+            window.location.href = whatsappUrl;
         }
 
         function confirmOrder() {
@@ -439,7 +440,17 @@
             button.textContent = 'جاري حفظ الطلب...';
             setStatus('جاري حفظ الطلب...', '');
 
-            var order = buildOrder();
+            try {
+                var order = buildOrder();
+            } catch (e) {
+                console.error('buildOrder error:', e);
+                alert('حدث خطأ أثناء تجهيز الطلب: ' + e.message);
+                button.disabled = false;
+                button.textContent = originalText;
+                setStatus('');
+                return;
+            }
+
             if (!window.db) {
                 alert('تعذر الاتصال بقاعدة البيانات حالياً، حاولي مرة أخرى.');
                 button.disabled = false;
@@ -454,8 +465,8 @@
                 cart = [];
                 showOrderSuccess(order);
             }).catch(function (error) {
-                console.error(error);
-                alert('تعذر حفظ الطلب حالياً، حاولي مرة أخرى.');
+                console.error('Firestore save error:', error);
+                alert('تعذر حفظ الطلب: ' + (error.message || 'خطأ غير معروف'));
                 button.disabled = false;
                 button.textContent = originalText;
                 setStatus('');
