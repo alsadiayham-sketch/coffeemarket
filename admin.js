@@ -1,4 +1,4 @@
-﻿var ADMIN_USER = 'coffee';
+var ADMIN_USER = 'coffee';
 var ADMIN_PASS = '5555';
 var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%234a2c17%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-size=%2730%27 fill=%27%23d4a574%27%3E☕%3C/text%3E%3C/svg%3E";
 
@@ -324,7 +324,7 @@ async function saveProduct(event) {
     event.preventDefault();
     var id = document.getElementById('productId').value;
     var sizes = collectSizes();
-    if (!sizes.length) return alert('أضيفي حجماً واحداً على الأقل مع السعر.');
+    if (!sizes.length) return alert('أضف حجماً واحداً على الأقل مع السعر.');
 
     var nextId = id ? id : 'product_' + Date.now();
 
