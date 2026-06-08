@@ -81,15 +81,15 @@
     <nav class="navbar">
         <div class="container nav-container" style="justify-content: space-between;">
             <a href="index.html" class="logo"><img src="logo.png" alt="Coffee Market" class="logo-img"><span class="logo-text" style="font-size:1rem;">Coffee Market</span></a>
-            <a href="index.html" style="color: var(--primary-dark); text-decoration: none; font-weight: 600; font-size: 0.95rem; white-space: nowrap; padding: 8px 20px; margin-left: 10px;">← الرئيسية</a>
+            <a href="index.html" style="color: var(--primary-dark); text-decoration: none; font-weight: 600; font-size: 0.95rem; white-space: nowrap; padding: 8px 20px; margin-left: 10px;"><span data-i18n="home">← الرئيسية</span></a>
         </div>
     </nav>
 
     <div class="checkout-page">
         <div class="checkout-container">
-            <a href="index.html" class="back-link">→ العودة للتسوق</a>
-            <h1 class="checkout-title">إتمام الطلب</h1>
-            <p class="checkout-status" id="checkoutStatus">جاري تحميل بيانات الطلب...</p>
+            <a href="index.html" class="back-link" data-i18n="backToShopping">→ العودة للتسوق</a>
+            <h1 class="checkout-title" data-i18n="checkoutTitle">إتمام الطلب</h1>
+            <p class="checkout-status" id="checkoutStatus" data-i18n="loadingOrder">جاري تحميل بيانات الطلب...</p>
             <div id="checkoutContent"></div>
         </div>
     </div>
@@ -98,6 +98,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="data.js"></script>
+    <script src="lang.js"></script>
     <script>
         var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23fdf8e8%22/%3E%3Ctext x=%2250%22 y=%2257%22 text-anchor=%22middle%22 font-size=%2218%22 fill=%22%23d4af37%22%3EIMG%3C/text%3E%3C/svg%3E";
         var products = normalizeProducts(DEFAULT_PRODUCTS);
@@ -108,7 +109,7 @@
         var selectedRegion = '';
 
         var DELIVERY_COSTS = { westbank: 20, jerusalem: 30, inside: 50 };
-        var DELIVERY_LABELS = { westbank: 'الضفة', jerusalem: 'القدس', inside: 'الداخل' };
+        var DELIVERY_LABELS = { westbank: t('westbank'), jerusalem: t('jerusalem'), inside: t('inside') };
 
         document.addEventListener('DOMContentLoaded', initializeCheckout);
 
@@ -190,7 +191,7 @@
         function render() {
             var container = document.getElementById('checkoutContent');
             if (cart.length === 0) {
-                container.innerHTML = '<div class="empty-checkout"><span>•</span><p>السلة فارغة! أضف منتجات أولاً</p><a href="index.html">تسوق الآن</a></div>';
+                container.innerHTML = '<div class="empty-checkout"><span>•</span><p>' + t('emptyCart') + '</p><a href="index.html">' + t('shopNow') + '</a></div>';
                 return;
             }
 
@@ -212,40 +213,40 @@
             html += '<div class="checkout-grid">';
             html += '<div>';
             html += '<div class="checkout-card">';
-            html += '<h3>المنتجات (' + itemCount + ' قطعة)</h3>';
+            html += '<h3>' + t('productsCount') + ' (' + itemCount + ' ' + t('pieces') + ')</h3>';
             html += itemsHTML;
             html += '</div>';
             html += '<div class="checkout-card" style="margin-top:20px;">';
-            html += '<h3>طريقة الاستلام</h3>';
+            html += '<h3>' + t('deliveryMethod') + '</h3>';
             html += '<div class="delivery-options">';
-            html += '<div class="delivery-option ' + (selectedDelivery === 'pickup' ? 'selected' : '') + '" onclick="selectDelivery(\'pickup\')"><div class="radio-dot"></div><div class="delivery-option-info"><h4>استلام ذاتي (مجاني)</h4><p>استلمي طلبك بنفسك بدون تكلفة إضافية</p></div></div>';
-            html += '<div class="delivery-option ' + (selectedDelivery === 'delivery' ? 'selected' : '') + '" onclick="selectDelivery(\'delivery\')"><div class="radio-dot"></div><div class="delivery-option-info"><h4>توصيل للعنوان</h4><p>توصيل لجميع مناطق الضفة، القدس، والداخل</p></div></div>';
+            html += '<div class="delivery-option ' + (selectedDelivery === 'pickup' ? 'selected' : '') + '" onclick="selectDelivery(\'pickup\')"><div class="radio-dot"></div><div class="delivery-option-info"><h4>' + t('pickupOption') + '</h4><p>' + t('pickupDesc') + '</p></div></div>';
+            html += '<div class="delivery-option ' + (selectedDelivery === 'delivery' ? 'selected' : '') + '" onclick="selectDelivery(\'delivery\')"><div class="radio-dot"></div><div class="delivery-option-info"><h4>' + t('deliveryOption') + '</h4><p>' + t('deliveryDesc') + '</p></div></div>';
             html += '</div>';
             if (selectedDelivery === 'delivery') {
                 html += '<div class="delivery-regions" style="margin-top:15px;">';
-                html += '<h4 style="margin-bottom:10px; font-size:0.95rem;">اختاري المنطقة:</h4>';
+                html += '<h4 style="margin-bottom:10px; font-size:0.95rem;">' + t('selectRegion') + '</h4>';
                 html += '<div class="region-options">';
-                html += '<div class="region-option ' + (selectedRegion === 'westbank' ? 'selected' : '') + '" onclick="selectRegion(\'westbank\')"><span>الضفة</span><span class="region-cost">₪20</span></div>';
-                html += '<div class="region-option ' + (selectedRegion === 'jerusalem' ? 'selected' : '') + '" onclick="selectRegion(\'jerusalem\')"><span>القدس</span><span class="region-cost">₪30</span></div>';
-                html += '<div class="region-option ' + (selectedRegion === 'inside' ? 'selected' : '') + '" onclick="selectRegion(\'inside\')"><span>الداخل</span><span class="region-cost">₪50</span></div>';
+                html += '<div class="region-option ' + (selectedRegion === 'westbank' ? 'selected' : '') + '" onclick="selectRegion(\'westbank\')"><span>' + t('westbank') + '</span><span class="region-cost">₪20</span></div>';
+                html += '<div class="region-option ' + (selectedRegion === 'jerusalem' ? 'selected' : '') + '" onclick="selectRegion(\'jerusalem\')"><span>' + t('jerusalem') + '</span><span class="region-cost">₪30</span></div>';
+                html += '<div class="region-option ' + (selectedRegion === 'inside' ? 'selected' : '') + '" onclick="selectRegion(\'inside\')"><span>' + t('inside') + '</span><span class="region-cost">₪50</span></div>';
                 html += '</div></div>';
             }
             html += '</div>';
             html += '<div class="checkout-card" style="margin-top:20px;">';
-            html += '<h3>معلومات التواصل</h3>';
-            html += '<div class="form-group"><label>الاسم</label><input type="text" id="custName" placeholder="اسمك الكريم" required></div>';
-            html += '<div class="form-group"><label>رقم الهاتف</label><input type="tel" id="custPhone" placeholder="05xxxxxxxx" pattern="[0-9]*" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>';
+            html += '<h3>' + t('contactInfo') + '</h3>';
+            html += '<div class="form-group"><label>' + t('nameLabel') + '</label><input type="text" id="custName" placeholder="اسمك الكريم" required></div>';
+            html += '<div class="form-group"><label>' + t('phoneLabel') + '</label><input type="tel" id="custPhone" placeholder="05xxxxxxxx" pattern="[0-9]*" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>';
             html += '<div class="form-group" id="addressGroup" style="' + (selectedDelivery === 'pickup' ? 'display:none' : '') + '"><label>العنوان (المدينة + تفاصيل)</label><textarea id="custAddress" rows="2" placeholder="المدينة، الحي، الشارع..."></textarea></div>';
-            html += '<div class="form-group"><label>ملاحظات إضافية (اختياري)</label><textarea id="custNotes" rows="2" placeholder="أي ملاحظات على الطلب..."></textarea></div>';
+            html += '<div class="form-group"><label>' + t('notesLabel') + '</label><textarea id="custNotes" rows="2" placeholder="أي ملاحظات على الطلب..."></textarea></div>';
             html += '</div>';
             html += '</div>';
             html += '<div><div class="checkout-card" style="position:sticky; top:80px;">';
-            html += '<h3>ملخص الطلب</h3>';
-            html += '<div class="summary-row"><span class="label">عدد المنتجات:</span><span>' + itemCount + ' قطعة</span></div>';
-            html += '<div class="summary-row"><span class="label">المجموع الفرعي:</span><span>' + getTotalDisplayText(subtotal, hasPending) + '</span></div>';
-            html += '<div class="summary-row"><span class="label">التوصيل:</span><span>' + getDeliveryCostLabel() + '</span></div>';
-            html += '<div class="summary-row total"><span>المجموع:</span><span>' + getTotalDisplayText(getTotal(), hasPending) + '</span></div>';
-            html += '<button type="button" class="btn-whatsapp-order" id="confirmOrderBtn" onclick="confirmOrder()">حفظ الطلب</button>';
+            html += '<h3>' + t('orderSummary') + '</h3>';
+            html += '<div class="summary-row"><span class="label">' + t('itemsCount') + '</span><span>' + itemCount + ' ' + t('pieces') + '</span></div>';
+            html += '<div class="summary-row"><span class="label">' + t('subtotal') + '</span><span>' + getTotalDisplayText(subtotal, hasPending) + '</span></div>';
+            html += '<div class="summary-row"><span class="label">' + t('deliveryFee') + '</span><span>' + getDeliveryCostLabel() + '</span></div>';
+            html += '<div class="summary-row total"><span>' + t('total') + '</span><span>' + getTotalDisplayText(getTotal(), hasPending) + '</span></div>';
+            html += '<button type="button" class="btn-whatsapp-order" id="confirmOrderBtn" onclick="confirmOrder()">' + t('saveOrder') + '</button>';
             html += '</div></div></div></div>';
             container.innerHTML = html;
             restoreFormValues(formData);
@@ -322,8 +323,8 @@
         }
 
         function getDeliveryCostLabel() {
-            if (selectedDelivery === 'pickup') return 'مجاني (استلام ذاتي)';
-            if (!selectedRegion) return 'اختاري المنطقة';
+            if (selectedDelivery === 'pickup') return t('free') + ' (' + t('pickupOption') + ')';
+            if (!selectedRegion) return t('selectRegion');
             return formatCurrency(getDeliveryCost()) + ' (' + DELIVERY_LABELS[selectedRegion] + ')';
         }
 
@@ -365,7 +366,7 @@
                     if (!product) {
                         return {
                             productId: item.id,
-                            name: 'منتج غير متوفر',
+                            name: t('productUnavailable'),
                             brand: '',
                             sizeIdx: item.sizeIdx,
                             sizeLabel: '',
@@ -415,21 +416,21 @@
                 }
                 return (index + 1) + '. ' + item.name + ' (' + item.sizeLabel + ')\n   السعر: ' + item.price + ' شيكل × ' + item.qty + ' = ' + item.lineTotal + ' شيكل';
             }).join('\n');
-            var shippingText = order.delivery === 'pickup' ? 'مجاني (استلام ذاتي)' : formatCurrency(order.deliveryCost) + ' (' + DELIVERY_LABELS[order.region] + ')';
-            var deliveryLabel = order.delivery === 'pickup' ? 'استلام ذاتي' : 'توصيل إلى ' + DELIVERY_LABELS[order.region] + ': ' + order.address;
-            var msg = 'مرحبا، طلب جديد (' + order.id + '):\n';
+            var shippingText = order.delivery === 'pickup' ? t('free') + ' (' + t('pickupOption') + ')' : formatCurrency(order.deliveryCost) + ' (' + DELIVERY_LABELS[order.region] + ')';
+            var deliveryLabel = order.delivery === 'pickup' ? t('pickupOption') : t('deliveryOption') + ' ' + DELIVERY_LABELS[order.region] + ': ' + order.address;
+            var msg = t('newOrderMsg') + ' (' + order.id + '):\n';
             msg += 'ـــــــــــــــــــــــــــ\n';
-            msg += 'الاسم: ' + order.customerName + '\n';
-            msg += 'الهاتف: ' + order.customerPhone + '\n';
+            msg += t('nameField') + ' ' + order.customerName + '\n';
+            msg += t('phoneField') + ' ' + order.customerPhone + '\n';
             msg += 'ـــــــــــــــــــــــــــ\n';
-            msg += 'المنتجات:\n\n' + itemsText + '\n';
+            msg += t('productsCount') + ':\n\n' + itemsText + '\n';
             msg += 'ـــــــــــــــــــــــــــ\n';
-            msg += 'المجموع المعروف: ' + formatCurrency(order.total) + '\n';
-            msg += 'الشحن: ' + shippingText + '\n';
-            msg += 'الإجمالي النهائي: ' + (order.totalDisplay || getTotalDisplayText(order.total, !!order.pricingPending)) + '\n';
+            msg += t('subtotal') + ' ' + formatCurrency(order.total) + '\n';
+            msg += t('deliveryFee') + ' ' + shippingText + '\n';
+            msg += t('total') + ' ' + (order.totalDisplay || getTotalDisplayText(order.total, !!order.pricingPending)) + '\n';
             msg += 'ـــــــــــــــــــــــــــ\n';
-            msg += 'الاستلام: ' + deliveryLabel + '\n';
-            if (order.notes) msg += 'ملاحظات: ' + order.notes + '\n';
+            msg += t('deliveryMethodLabel') + ' ' + deliveryLabel + '\n';
+            if (order.notes) msg += t('notesField') + ' ' + order.notes + '\n';
             return msg;
         }
 
@@ -445,12 +446,12 @@
         function confirmOrder() {
             var customerName = document.getElementById('custName').value.trim();
             var customerPhone = document.getElementById('custPhone').value.trim();
-            if (!customerName || !customerPhone) return alert('الرجاء إدخال الاسم ورقم الهاتف');
-            if (customerPhone.length < 9 || customerPhone.length > 14) return alert('رقم الهاتف غير صحيح');
+            if (!customerName || !customerPhone) return alert(t('enterName'));
+            if (customerPhone.length < 9 || customerPhone.length > 14) return alert(t('enterPhone'));
             if (selectedDelivery === 'delivery') {
-                if (!selectedRegion) return alert('الرجاء اختيار المنطقة');
+                if (!selectedRegion) return alert(t('selectRegionError'));
                 var address = document.getElementById('custAddress').value.trim();
-                if (!address) return alert('الرجاء إدخال عنوان التوصيل');
+                if (!address) return alert(t('enterAddress'));
             }
 
             var button = document.getElementById('confirmOrderBtn');

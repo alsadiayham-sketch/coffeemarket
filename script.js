@@ -281,7 +281,7 @@ function renderProducts(productsToShow) {
             var discountBadge = pricing.hasDiscount ? '<span class="discount-badge">-' + pricing.discountPercent + '%</span>' : '';
             var soldOutClass = isOutOfStock(product) ? 'sold-out' : '';
             var sizeSelector = product.sizes && product.sizes.length > 1
-                ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">الحجم:</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
+                ? '<div class="card-size-selector"><label for="sizeSelect-' + product.id + '">' + t('sizeLabel') + '</label><select id="sizeSelect-' + product.id + '" class="size-select" onclick="event.stopPropagation()" onchange="updateProductSize(\'' + product.id + '\', this.value)">' + product.sizes.map(function (size, idx) { return '<option value="' + idx + '">' + getSizeLabel(size) + '</option>'; }).join('') + '</select></div>'
                 : '';
 
             var card = document.createElement('div');
@@ -302,7 +302,7 @@ function renderProducts(productsToShow) {
                 '<div class="product-card-controls">' + sizeSelector + '</div>',
                 '<div class="product-card-actions">',
                 '<div class="qty-selector qty-sm" id="qty-' + product.id + '"><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', -1)">−</button><span id="cardQty-' + product.id + '">1</span><button onclick="event.stopPropagation(); changeCardQty(\'' + product.id + '\', 1)">+</button></div>',
-                '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (isOutOfStock(product) ? 'disabled' : '') + '>' + (isOutOfStock(product) ? 'نفذت الكمية' : 'أضف') + '</button>',
+                '<button class="btn-add-cart" onclick="addToCart(event, \'' + product.id + '\')" ' + (isOutOfStock(product) ? 'disabled' : '') + '>' + (isOutOfStock(product) ? t('soldOut') : t('add')) + '</button>',
                 '</div>'
             ].join('');
             grid.appendChild(card);
@@ -323,9 +323,9 @@ function updateProductSize(productId, sizeIdx) {
 
 function getStatusBadge(status) {
     switch (status) {
-        case 'bestseller': return '<span class="status-badge bestseller">الأكثر مبيعاً</span>';
-        case 'special': return '<span class="status-badge special">مميز</span>';
-        case 'soldout': return '<span class="status-badge soldout">نفذت الكمية</span>';
+        case 'bestseller': return '<span class="status-badge bestseller">' + t('filterBestseller') + '</span>';
+        case 'special': return '<span class="status-badge special">' + t('filterSpecial') + '</span>';
+        case 'soldout': return '<span class="status-badge soldout">' + t('soldOut') + '</span>';
         default: return '';
     }
 }
@@ -539,8 +539,8 @@ function resetPackagingBuilderForm() {
     packagingBuilderSets = [createDefaultPackagingSet()];
     var title = document.getElementById('packagingBuilderTitle');
     var submit = document.getElementById('packagingBuilderSubmit');
-    if (title) title.textContent = 'صممي علبتك المخصصة';
-    if (submit) submit.textContent = 'أضف إلى السلة';
+    if (title) title.textContent = t('customPackageTitle');
+    if (submit) submit.textContent = t('addToCart');
     if (document.getElementById('packageWrapperColor')) document.getElementById('packageWrapperColor').value = 'gold';
     if (document.getElementById('packageNotes')) document.getElementById('packageNotes').value = '';
     if (document.getElementById('packageCustomerName')) document.getElementById('packageCustomerName').value = '';
@@ -718,10 +718,10 @@ function addToCart(event, productId) {
     updateCartBadge();
     updateCheckoutLink(updateCartTotal());
 
-    btn.textContent = 'تمت الإضافة';
+    btn.textContent = t('added');
     btn.classList.add('added');
     setTimeout(function () {
-        btn.textContent = 'أضف';
+        btn.textContent = t('add');
         btn.classList.remove('added');
     }, 1500);
 
@@ -978,11 +978,11 @@ function openPDP(productId) {
 
     var addBtn = document.getElementById('pdpAddBtn');
     if (isOutOfStock(product)) {
-        addBtn.textContent = 'نفذت الكمية';
+        addBtn.textContent = t('soldOut');
         addBtn.disabled = true;
         addBtn.style.background = '#9ca3af';
     } else {
-        addBtn.textContent = 'أضف للسلة';
+        addBtn.textContent = t('addToCart');
         addBtn.disabled = false;
         addBtn.style.background = '';
     }
@@ -1077,10 +1077,10 @@ function addFromPDP() {
     if (img) flyToCart(img, currentPDPProduct);
 
     var btn = document.getElementById('pdpAddBtn');
-    btn.textContent = 'تمت الإضافة';
+    btn.textContent = t('added');
     btn.classList.add('added');
     setTimeout(function () {
-        btn.textContent = 'أضف للسلة';
+        btn.textContent = t('addToCart');
         btn.classList.remove('added');
         closePDP();
     }, 1200);

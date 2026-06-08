@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -49,23 +49,23 @@
     <div class="confirmation-page">
         <div class="confirmation-card">
             <div class="success-icon">✓</div>
-            <h1>تم تأكيد طلبك بنجاح</h1>
+            <h1 data-i18n="orderConfirmed">تم تأكيد طلبك بنجاح</h1>
             <p class="order-id" id="orderId"></p>
-            <button class="btn-copy-order" id="copyOrderBtn" onclick="copyOrderId()">نسخ</button>
+            <button class="btn-copy-order" id="copyOrderBtn" data-i18n="copy" onclick="copyOrderId()">نسخ</button>
             <div class="order-details">
-                <h3>تفاصيل الطلب</h3>
+                <h3 data-i18n="orderDetails">تفاصيل الطلب</h3>
                 <div id="orderItems"></div>
                 <div class="order-summary">
-                    <div class="order-summary-row"><span>عدد المنتجات:</span><span id="orderCount"></span></div>
-                    <div class="order-summary-row"><span>طريقة الاستلام:</span><span id="orderDelivery"></span></div>
-                    <div class="order-summary-row total"><span>المجموع:</span><span id="orderTotal"></span></div>
+                    <div class="order-summary-row"><span data-i18n="productCount">عدد المنتجات:</span><span id="orderCount"></span></div>
+                    <div class="order-summary-row"><span data-i18n="deliveryMethodLabel">طريقة الاستلام:</span><span id="orderDelivery"></span></div>
+                    <div class="order-summary-row total"><span data-i18n="total">المجموع:</span><span id="orderTotal"></span></div>
                 </div>
                 <div class="order-info" id="orderInfo"></div>
             </div>
-            <p style="color: var(--text-light); font-size: 0.9rem;">سيتم التواصل معك قريباً لتأكيد الطلب</p>
+            <p style="color: var(--text-light); font-size: 0.9rem;" data-i18n="willContact">سيتم التواصل معك قريباً لتأكيد الطلب</p>
             <div class="confirmation-actions">
-                <a href="#" class="btn-whatsapp-confirm" id="whatsappConfirmBtn">إرسال الطلب عبر واتساب</a>
-                <a href="index.html" class="btn-continue">متابعة التسوق</a>
+                <a href="#" class="btn-whatsapp-confirm" id="whatsappConfirmBtn" data-i18n="sendWhatsapp">إرسال الطلب عبر واتساب</a>
+                <a href="index.html" class="btn-continue" data-i18n="continueShopping">متابعة التسوق</a>
             </div>
         </div>
     </div>
@@ -73,6 +73,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="data.js"></script>
+    <script src="lang.js"></script>
     <script>
         var siteSettings = normalizeSettings(DEFAULT_SITE_SETTINGS);
 
@@ -97,7 +98,7 @@
         });
 
         function renderOrder(order) {
-            document.getElementById('orderId').textContent = 'رقم الطلب: ' + order.id;
+            document.getElementById('orderId').textContent = t('orderNumber') + ' ' + order.id;
             document.getElementById('orderItems').innerHTML = (order.items || []).map(function (item) {
                 if (item.type === 'custom_package') {
                     var meta = '<span class="order-item-qty">علبة مخصصة • لون التغليف: ' + getWrapperColorLabel(item.wrapperColor) + '</span>';
@@ -110,14 +111,14 @@
                 return '<div class="order-item"><div><span class="order-item-name">' + item.name + '</span><span class="order-item-qty">' + item.brand + ' • ' + item.sizeLabel + ' • x' + item.qty + '</span></div><span class="order-item-price">' + formatCurrency(item.lineTotal) + '</span></div>';
             }).join('');
             var totalItems = (order.items || []).reduce(function (sum, item) { return sum + (parseInt(item.qty, 10) || 1); }, 0);
-            document.getElementById('orderCount').textContent = totalItems + ' قطعة';
-            document.getElementById('orderDelivery').textContent = order.delivery === 'pickup' ? 'استلام ذاتي' : 'توصيل';
+            document.getElementById('orderCount').textContent = totalItems + ' ' + t('pieces');
+            document.getElementById('orderDelivery').textContent = order.delivery === 'pickup' ? t('pickup') : t('delivery');
             document.getElementById('orderTotal').textContent = order.totalDisplay || getTotalDisplayText(order.total, !!order.pricingPending);
-            var info = '<span><strong>الاسم:</strong> ' + order.customerName + '</span>';
-            info += '<span><strong>الهاتف:</strong> ' + order.customerPhone + '</span>';
-            if (order.delivery === 'delivery' && order.address) info += '<span><strong>العنوان:</strong> ' + order.address + '</span>';
-            if (order.notes) info += '<span><strong>ملاحظات:</strong> ' + order.notes + '</span>';
-            info += '<span><strong>التاريخ:</strong> ' + formatDateTime(order.date) + '</span>';
+            var info = '<span><strong>' + t('nameField') + '</strong> ' + order.customerName + '</span>';
+            info += '<span><strong>' + t('phoneField') + '</strong> ' + order.customerPhone + '</span>';
+            if (order.delivery === 'delivery' && order.address) info += '<span><strong>' + t('addressField') + '</strong> ' + order.address + '</span>';
+            if (order.notes) info += '<span><strong>' + t('notesField') + '</strong> ' + order.notes + '</span>';
+            info += '<span><strong>' + t('dateField') + '</strong> ' + formatDateTime(order.date) + '</span>';
             document.getElementById('orderInfo').innerHTML = info;
             document.getElementById('whatsappConfirmBtn').href = buildWhatsAppUrl(siteSettings.whatsappNumber || '970595170026', buildWhatsAppMessage(order));
             createConfetti();
