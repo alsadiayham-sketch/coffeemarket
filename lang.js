@@ -131,6 +131,7 @@ var TRANSLATIONS = {
         searchPlaceholderLong: 'Search by product, brand, or category...',
         heroSubtitle: 'The finest coffee & hot beverages',
         heroTagline: 'From Nablus to your door — authentic coffee taste',
+        aboutText: 'Coffee Market - Your destination for the finest Arabic, Turkish, and Espresso coffee.\nWe offer a wide selection of fresh and ground coffee beans,\nplus coffee brewing tools and accessories.\nVisit us in Nablus or order online.',
         shopNow: 'Shop Now',
         ourProducts: 'Our Products',
         filterAll: 'All',
@@ -238,6 +239,7 @@ var TRANSLATIONS = {
         searchPlaceholderLong: 'חפש מוצר, מותג או קטגוריה...',
         heroSubtitle: 'הקפה והמשקאות החמים הטובים ביותר',
         heroTagline: 'מנאבלוס עד אליך — טעם הקפה המקורי',
+        aboutText: 'שוק הקפה - היעד שלך לקפה הערבי, הטורקי והאספרסו הטובים ביותר.\nאנו מציעים מגוון רחב של פולי קפה טריים וטחונים,\nבנוסף לכלי הכנת קפה ואביזרים.\nבקרו אותנו בשכם או הזמינו אונליין.',
         shopNow: 'קנה עכשיו',
         ourProducts: 'המוצרים שלנו',
         filterAll: 'הכל',
@@ -347,8 +349,8 @@ function setLanguage(lang) {
     localStorage.setItem('coffeemarket_lang', lang);
     applyLanguage();
     // Re-render products if on main page
-    if (typeof renderProducts === 'function') {
-        renderProducts();
+    if (typeof renderProducts === 'function' && typeof getFilteredProducts === 'function') {
+        renderProducts(getFilteredProducts(currentFilter));
     }
 }
 

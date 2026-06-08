@@ -247,7 +247,7 @@ function renderProducts(productsToShow) {
     grid.innerHTML = '';
 
     if (!productsToShow.length) {
-        grid.innerHTML = '<div class="empty-products">لا توجد منتجات متاحة حالياً.</div>';
+        grid.innerHTML = '<div class="empty-products">' + t('noResults') + '</div>';
         return;
     }
 
@@ -912,9 +912,9 @@ function renderHeroSlider(slides) {
         }
         return '<div class="hero-slide' + (idx === 0 ? ' active' : '') + '">' + media +
             '<div class="hero-overlay"><div class="hero-content">' +
-            (slide.title ? '<h2>' + slide.title + '</h2>' : '') +
-            (slide.subtitle ? '<p class="hero-subtitle">' + slide.subtitle + '</p>' : '') +
-            '<a href="#products" class="btn-primary">تسوق الآن</a>' +
+            '<p class="hero-subtitle" data-i18n="heroSubtitle">' + t('heroSubtitle') + '</p>' +
+            '<p class="hero-tagline" data-i18n="heroTagline">' + t('heroTagline') + '</p>' +
+            '<a href="#products" class="btn-primary" data-i18n="shopNow">' + t('shopNow') + '</a>' +
             '</div></div></div>';
     }).join('');
     section.innerHTML = html;
