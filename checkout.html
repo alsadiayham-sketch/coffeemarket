@@ -234,10 +234,10 @@
             html += '</div>';
             html += '<div class="checkout-card" style="margin-top:20px;">';
             html += '<h3>' + t('contactInfo') + '</h3>';
-            html += '<div class="form-group"><label>' + t('nameLabel') + '</label><input type="text" id="custName" placeholder="اسمك الكريم" required></div>';
-            html += '<div class="form-group"><label>' + t('phoneLabel') + '</label><input type="tel" id="custPhone" placeholder="05xxxxxxxx" pattern="[0-9]*" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>';
-            html += '<div class="form-group" id="addressGroup" style="' + (selectedDelivery === 'pickup' ? 'display:none' : '') + '"><label>العنوان (المدينة + تفاصيل)</label><textarea id="custAddress" rows="2" placeholder="المدينة، الحي، الشارع..."></textarea></div>';
-            html += '<div class="form-group"><label>' + t('notesLabel') + '</label><textarea id="custNotes" rows="2" placeholder="أي ملاحظات على الطلب..."></textarea></div>';
+            html += '<div class="form-group"><label>' + t('nameLabel') + '</label><input type="text" id="custName" placeholder="' + t('namePlaceholder') + '" required></div>';
+            html += '<div class="form-group"><label>' + t('phoneLabel') + '</label><input type="tel" id="custPhone" placeholder="' + t('phonePlaceholder') + '" pattern="[0-9]*" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>';
+            html += '<div class="form-group" id="addressGroup" style="' + (selectedDelivery === 'pickup' ? 'display:none' : '') + '"><label>' + t('addressLabel') + '</label><textarea id="custAddress" rows="2" placeholder="' + t('addressPlaceholder') + '"></textarea></div>';
+            html += '<div class="form-group"><label>' + t('notesLabel') + '</label><textarea id="custNotes" rows="2" placeholder="' + t('notesPlaceholder') + '"></textarea></div>';
             html += '</div>';
             html += '</div>';
             html += '<div><div class="checkout-card" style="position:sticky; top:80px;">';

@@ -168,14 +168,15 @@ function renderStorefront() {
     renderProducts(getFilteredProducts(currentFilter));
     updateCheckoutLink(updateCartTotal());
     if (!usedFallbackData) setStoreMessage('', 'info');
+    if (typeof applyLanguage === 'function') applyLanguage();
 }
 
 function applySettings() {
     var heroSub = document.getElementById('heroSubtitle');
-    if (heroSub) heroSub.textContent = siteSettings.heroSubtitle;
+    if (heroSub && currentLang === 'ar') heroSub.textContent = siteSettings.heroSubtitle;
 
-    var aboutText = document.getElementById('aboutText');
-    if (aboutText) aboutText.innerHTML = siteSettings.aboutText.replace(/\n/g, '<br>');
+    var aboutEl = document.getElementById('aboutText');
+    if (aboutEl && currentLang === 'ar') aboutEl.innerHTML = siteSettings.aboutText.replace(/\n/g, '<br>');
 
     var whatsappLink = document.getElementById('whatsappLink');
     if (whatsappLink) whatsappLink.href = buildWhatsAppUrl(siteSettings.whatsappNumber);
@@ -385,7 +386,7 @@ function setupSearch(inputId, dropdownId) {
         }).slice(0, 8);
 
         if (!results.length) {
-            dropdown.innerHTML = '<div class="search-item"><div class="search-item-info"><h4>لا توجد نتائج</h4></div></div>';
+            dropdown.innerHTML = '<div class="search-item"><div class="search-item-info"><h4>' + t('noResults') + '</h4></div></div>';
         } else {
             dropdown.innerHTML = results.map(function (product) {
                 var pricing = getFinalPrice(product, 0, discounts);

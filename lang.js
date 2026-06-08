@@ -22,6 +22,7 @@ var TRANSLATIONS = {
         filterBtn: 'فلتر ▼',
         categoryLabel: 'النوع',
         loading: 'جاري تحميل تشكيلتنا الفاخرة...',
+        noResults: 'لا توجد نتائج',
         addToCart: 'أضف للسلة',
         customPackageTitle: 'صممي علبتك المخصصة',
         add: 'أضف',
@@ -138,6 +139,7 @@ var TRANSLATIONS = {
         filterBtn: 'Filter ▼',
         categoryLabel: 'Category',
         loading: 'Loading our collection...',
+        noResults: 'No results found',
         addToCart: 'Add to Cart',
         customPackageTitle: 'Design Your Custom Box',
         add: 'Add',
@@ -367,6 +369,8 @@ function applyLanguage() {
         var key = elements[i].getAttribute('data-i18n');
         if (elements[i].tagName === 'INPUT' || elements[i].tagName === 'TEXTAREA') {
             elements[i].placeholder = t(key);
+        } else if (key === 'aboutText') {
+            elements[i].innerHTML = t(key).replace(/\n/g, '<br>');
         } else {
             elements[i].textContent = t(key);
         }
