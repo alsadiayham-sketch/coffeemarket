@@ -714,7 +714,7 @@ function addToCart(event, productId) {
 
     var existing = cart.find(function (item) { return item.id === productId && item.sizeIdx === sizeIdx; });
     if (existing) existing.qty += qty;
-    else cart.push({ id: productId, sizeIdx: sizeIdx, qty: qty, price: pricing.final });
+    else cart.push({ id: productId, sizeIdx: sizeIdx, qty: qty, price: pricing.final, name: product.name, brand: product.brand, image: product.image });
 
     saveCart();
     updateCartBadge();
@@ -1069,7 +1069,7 @@ function addFromPDP() {
     var pricing = getFinalPrice(currentPDPProduct, currentPDPSizeIdx, discounts);
     var existing = cart.find(function (item) { return item.id === currentPDPProduct.id && item.sizeIdx === currentPDPSizeIdx; });
     if (existing) existing.qty += pdpQty;
-    else cart.push({ id: currentPDPProduct.id, sizeIdx: currentPDPSizeIdx, qty: pdpQty, price: pricing.final });
+    else cart.push({ id: currentPDPProduct.id, sizeIdx: currentPDPSizeIdx, qty: pdpQty, price: pricing.final, name: currentPDPProduct.name, brand: currentPDPProduct.brand, image: currentPDPProduct.image });
 
     saveCart();
     updateCartBadge();

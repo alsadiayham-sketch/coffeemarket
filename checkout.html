@@ -366,8 +366,8 @@
                     if (!product) {
                         return {
                             productId: item.id,
-                            name: t('productUnavailable'),
-                            brand: '',
+                            name: item.name || t('productUnavailable'),
+                            brand: item.brand || '',
                             sizeIdx: item.sizeIdx,
                             sizeLabel: '',
                             qty: item.qty,
