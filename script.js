@@ -1,4 +1,5 @@
 var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%234a2c17%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-size=%2730%27 fill=%27%23d4a574%27%3E☕%3C/text%3E%3C/svg%3E";
+var heroSlides = [];
 
 function isOutOfStock(product) {
     if (product.status === 'soldout') return true;
@@ -136,8 +137,8 @@ function subscribeToStoreData() {
 
     // Hero Display slider
     unsubscribers.push(db.collection('heroDisplay').orderBy('order', 'asc').onSnapshot(function (snapshot) {
-        var slides = snapshot.docs.map(function(doc) { return doc.data(); });
-        renderHeroSlider(slides);
+        heroSlides = snapshot.docs.map(function(doc) { return doc.data(); });
+        renderHeroSlider(heroSlides);
     }, function() { /* keep static fallback */ }));
 }
 
@@ -271,7 +272,7 @@ function renderProducts(productsToShow) {
         if (!isSingleCategory) {
             var header = document.createElement('div');
             header.className = 'products-category-header';
-            header.innerHTML = '<h3>' + category + '</h3>';
+            header.innerHTML = '<h3>' + tp(category) + '</h3>';
             grid.appendChild(header);
         }
 
@@ -296,8 +297,8 @@ function renderProducts(productsToShow) {
                 '</div>',
                 '<div class="product-info" onclick="openPDP(\'' + product.id + '\')" style="cursor:pointer;">',
                 '<span class="product-brand">' + product.brand + '</span>',
-                '<h3>' + product.name + '</h3>',
-                '<div class="product-meta"><span>' + product.category + '</span></div>',
+                '<h3>' + tp(product.name) + '</h3>',
+                '<div class="product-meta"><span>' + tp(product.category) + '</span></div>',
                 '<div class="product-price" id="productPrice-' + product.id + '">' + getPriceHTML(pricing) + '</div>',
                 '</div>',
                 '<div class="product-card-controls">' + sizeSelector + '</div>',
@@ -354,7 +355,7 @@ function createFilterButton(value) {
     var button = document.createElement('button');
     button.className = 'filter-btn';
     button.dataset.filter = value;
-    button.textContent = value;
+    button.textContent = tp(value);
     button.addEventListener('click', function () {
         filterProducts(value);
     });
@@ -972,7 +973,7 @@ function openPDP(productId) {
 
     document.getElementById('pdpImage').innerHTML = '<img src="' + product.image + '" alt="' + product.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">';
     document.getElementById('pdpBrand').textContent = product.brand;
-    document.getElementById('pdpName').textContent = product.name;
+    document.getElementById('pdpName').textContent = tp(product.name);
     document.getElementById('pdpQty').textContent = '1';
     renderPDPSizeOptions();
     updatePDPDisplay();
@@ -1044,7 +1045,7 @@ function updatePDPDisplay() {
     if (!currentPDPProduct) return;
     var sizeData = getSizeData(currentPDPProduct, currentPDPSizeIdx);
     var pricing = getFinalPrice(currentPDPProduct, currentPDPSizeIdx, discounts);
-    document.getElementById('pdpMeta').innerHTML = '<span>' + currentPDPProduct.category + '</span>';
+    document.getElementById('pdpMeta').innerHTML = '<span>' + tp(currentPDPProduct.category) + '</span>';
     document.getElementById('pdpPrice').innerHTML = (pricing.hasDiscount ? '<span class="original-price">' + formatCurrency(pricing.original) + '</span>' : '') + '<span class="final-price">' + formatCurrency(pricing.final) + '</span>';
 }
 

@@ -348,9 +348,14 @@ function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('coffeemarket_lang', lang);
     applyLanguage();
-    // Re-render products if on main page
+    // Re-render products and filters if on main page
     if (typeof renderProducts === 'function' && typeof getFilteredProducts === 'function') {
+        if (typeof renderFilters === 'function') renderFilters();
         renderProducts(getFilteredProducts(currentFilter));
+    }
+    // Re-render hero slider
+    if (typeof renderHeroSlider === 'function' && typeof heroSlides !== 'undefined') {
+        renderHeroSlider(heroSlides);
     }
 }
 
@@ -383,3 +388,70 @@ function applyLanguage() {
 document.addEventListener('DOMContentLoaded', function() {
     applyLanguage();
 });
+
+// ===== Product & Category Translations =====
+var PRODUCT_TRANSLATIONS = {
+    en: {
+        // Category
+        'كبسولات قهوة': 'Coffee Capsules',
+        // Products
+        'كبسولات اسبريسو نابولي': 'Espresso Napoli Capsules',
+        'كبسولات فلات وايت': 'Flat White Capsules',
+        'كبسولات كابتشينو': 'Cappuccino Capsules',
+        'كبسولات لاتيه كارميل': 'Caramel Latte Capsules',
+        'لاتيه Sical': 'Sical Latte',
+        'اسبرسو Dappio': 'Dappio Espresso',
+        'نسكويك': 'Nesquik',
+        'لونجو': 'Lungo',
+        'نسكافيه': 'Nescafe',
+        'امركانو': 'Americano',
+        'جراند': 'Grand',
+        'شوكوتشينو': 'Chococcino',
+        'لاتيه مكياتو': 'Latte Macchiato',
+        'مارس': 'Mars',
+        'ميلكي واي': 'Milky Way',
+        'باونتي': 'Bounty',
+        'مالتيزر': 'Maltesers',
+        'باسو': 'Basso',
+        'بندق': 'Hazelnut',
+        'كابتشينو': 'Cappuccino',
+        'هوت شوكلت': 'Hot Chocolate',
+        'موكاتشينو': 'Mochaccino',
+        'اسبرسو بالهال': 'Cardamom Espresso'
+    },
+    he: {
+        // Category
+        'كبسولات قهوة': 'קפסולות קפה',
+        // Products
+        'كبسولات اسبريسو نابولي': 'קפסולות אספרסו נאפולי',
+        'كبسولات فلات وايت': 'קפסולות פלט וויט',
+        'كبسولات كابتشينو': 'קפסולות קפוצ\'ינו',
+        'كبسولات لاتيه كارميل': 'קפסולות לאטה קרמל',
+        'لاتيه Sical': 'Sical לאטה',
+        'اسبرسو Dappio': 'Dappio אספרסו',
+        'نسكويك': 'נסקוויק',
+        'لونجو': 'לונגו',
+        'نسكافيه': 'נסקפה',
+        'امركانو': 'אמריקנו',
+        'جراند': 'גרנד',
+        'شوكوتشينو': 'שוקוצ\'ינו',
+        'لاتيه مكياتو': 'לאטה מקיאטו',
+        'مارس': 'מארס',
+        'ميلكي واي': 'מילקי וויי',
+        'باونتي': 'באונטי',
+        'مالتيزر': 'מלטיזרס',
+        'باسو': 'באסו',
+        'بندق': 'אגוז לוז',
+        'كابتشينو': 'קפוצ\'ינו',
+        'هوت شوكلت': 'שוקו חם',
+        'موكاتشينو': 'מוקצ\'ינו',
+        'اسبرسو بالهال': 'אספרסו עם הל'
+    }
+};
+
+// Translate product name or category
+function tp(text) {
+    if (currentLang === 'ar' || !text) return text;
+    var map = PRODUCT_TRANSLATIONS[currentLang];
+    return (map && map[text]) || text;
+}
