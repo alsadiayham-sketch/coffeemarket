@@ -1012,8 +1012,8 @@ function renderRelatedProducts(product) {
     container.innerHTML = related.map(function (p) {
         var pricing = getFinalPrice(p, 0, discounts);
         return '<div class="pdp-related-item" onclick="openPDP(\'' + p.id + '\')">' +
-            '<img src="' + p.image + '" alt="' + p.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">' +
-            '<div class="related-info"><p>' + p.name + '</p><span>' + formatCurrency(pricing.final) + '</span></div>' +
+            '<img src="' + p.image + '" alt="' + tp(p.name) + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">' +
+            '<div class="related-info"><p>' + tp(p.name) + '</p><span>' + formatCurrency(pricing.final) + '</span></div>' +
             '</div>';
     }).join('');
 }
