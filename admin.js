@@ -134,8 +134,8 @@ function killAllSessions() {
     }).then(function () {
         setAdminStatus('تم إنهاء جميع الجلسات', 'success');
         setTimeout(function () { logout(); }, 1500);
-    }).catch(function (e) {
-        setAdminStatus('حدث خطأ: ' + e.message, 'error');
+    }).catch(function () {
+        setAdminStatus('لإنهاء الجلسات، غيّر قيمة sessionVersion من Firebase Console', 'error');
     });
 }
 
