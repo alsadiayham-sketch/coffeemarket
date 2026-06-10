@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var token = sessionStorage.getItem('coffeemarket_admin');
     if (token) {
         if (window.db) {
-            db.collection('admin').doc('credentials').get().then(function (docSnap) {
+            adminRef.get().then(function (docSnap) {
                 if (!docSnap.exists) {
                     sessionStorage.removeItem('coffeemarket_admin');
                     return;
@@ -94,7 +94,7 @@ function handleLogin(event) {
         return;
     }
 
-    db.collection('admin').doc('credentials').get().then(function (docSnap) {
+    adminRef.get().then(function (docSnap) {
         if (!docSnap.exists) {
             errorEl.textContent = 'لم يتم تهيئة بيانات الدخول';
             return;
@@ -127,10 +127,10 @@ function logout() {
 
 function killAllSessions() {
     if (!confirm('سيتم تسجيل خروج جميع المستخدمين بما فيهم أنت. متأكد؟')) return;
-    db.collection('admin').doc('credentials').get().then(function (docSnap) {
+    adminRef.get().then(function (docSnap) {
         var creds = docSnap.exists ? docSnap.data() : {};
         var currentVersion = Number(creds.sessionVersion || 1);
-        return db.collection('admin').doc('credentials').update({ sessionVersion: currentVersion + 1 });
+        return adminRef.update({ sessionVersion: currentVersion + 1 });
     }).then(function () {
         setAdminStatus('تم إنهاء جميع الجلسات', 'success');
         setTimeout(function () { logout(); }, 1500);
