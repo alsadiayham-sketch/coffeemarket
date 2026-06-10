@@ -25,18 +25,26 @@ var adminReady = {
 document.addEventListener('DOMContentLoaded', function () {
     var token = sessionStorage.getItem('coffeemarket_admin');
     if (token) {
-        // Verify session is still valid by checking credentials exist
         if (window.db) {
             db.collection('admin').doc('credentials').get().then(function (docSnap) {
-                if (docSnap.exists) {
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('adminPanel').style.display = 'block';
-                    initializeAdmin();
-                } else {
+                if (!docSnap.exists) {
                     sessionStorage.removeItem('coffeemarket_admin');
+                    return;
                 }
+                var creds = docSnap.data();
+                var storedVersion = sessionStorage.getItem('coffeemarket_admin_version');
+                var dbVersion = String(creds.sessionVersion || '1');
+                if (storedVersion !== dbVersion) {
+                    // Session invalidated remotely
+                    sessionStorage.removeItem('coffeemarket_admin');
+                    sessionStorage.removeItem('coffeemarket_admin_version');
+                    location.reload();
+                    return;
+                }
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                initializeAdmin();
             }).catch(function () {
-                // Allow offline access with existing session
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 initializeAdmin();
@@ -94,9 +102,10 @@ function handleLogin(event) {
         var creds = docSnap.data();
         hashString(pass).then(function (passHash) {
             if (user === creds.username && passHash === creds.passwordHash) {
-                // Generate session token
                 var sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+                var dbVersion = String(creds.sessionVersion || '1');
                 sessionStorage.setItem('coffeemarket_admin', sessionToken);
+                sessionStorage.setItem('coffeemarket_admin_version', dbVersion);
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 initializeAdmin();
@@ -111,8 +120,23 @@ function handleLogin(event) {
 
 function logout() {
     sessionStorage.removeItem('coffeemarket_admin');
+    sessionStorage.removeItem('coffeemarket_admin_version');
     unsubscribers.forEach(function (unsubscribe) { if (typeof unsubscribe === 'function') unsubscribe(); });
     location.reload();
+}
+
+function killAllSessions() {
+    if (!confirm('سيتم تسجيل خروج جميع المستخدمين بما فيهم أنت. متأكد؟')) return;
+    db.collection('admin').doc('credentials').get().then(function (docSnap) {
+        var creds = docSnap.exists ? docSnap.data() : {};
+        var currentVersion = Number(creds.sessionVersion || 1);
+        return db.collection('admin').doc('credentials').update({ sessionVersion: currentVersion + 1 });
+    }).then(function () {
+        setAdminStatus('تم إنهاء جميع الجلسات', 'success');
+        setTimeout(function () { logout(); }, 1500);
+    }).catch(function (e) {
+        setAdminStatus('حدث خطأ: ' + e.message, 'error');
+    });
 }
 
 function switchTab(tab, button) {
