@@ -1,6 +1,11 @@
-var ADMIN_USER = 'coffee';
-var ADMIN_PASS = '5555';
 var FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%234a2c17%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-size=%2730%27 fill=%27%23d4a574%27%3E☕%3C/text%3E%3C/svg%3E";
+
+function hashString(str) {
+    var encoder = new TextEncoder();
+    return crypto.subtle.digest('SHA-256', encoder.encode(str)).then(function (buffer) {
+        return Array.from(new Uint8Array(buffer)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+    });
+}
 
 var products = [];
 var discounts = [];
@@ -18,10 +23,29 @@ var adminReady = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    if (sessionStorage.getItem('coffeemarket_admin') === 'true') {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        initializeAdmin();
+    var token = sessionStorage.getItem('coffeemarket_admin');
+    if (token) {
+        // Verify session is still valid by checking credentials exist
+        if (window.db) {
+            db.collection('admin').doc('credentials').get().then(function (docSnap) {
+                if (docSnap.exists) {
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    initializeAdmin();
+                } else {
+                    sessionStorage.removeItem('coffeemarket_admin');
+                }
+            }).catch(function () {
+                // Allow offline access with existing session
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                initializeAdmin();
+            });
+        } else {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            initializeAdmin();
+        }
     }
 });
 
@@ -52,16 +76,37 @@ function setAdminStatus(message, type) {
 
 function handleLogin(event) {
     event.preventDefault();
-    var user = document.getElementById('loginUser').value;
+    var user = document.getElementById('loginUser').value.trim();
     var pass = document.getElementById('loginPass').value;
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        sessionStorage.setItem('coffeemarket_admin', 'true');
-        initializeAdmin();
-    } else {
-        document.getElementById('loginError').textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+    var errorEl = document.getElementById('loginError');
+    errorEl.textContent = '';
+
+    if (!window.db) {
+        errorEl.textContent = 'تعذر الاتصال بقاعدة البيانات';
+        return;
     }
+
+    db.collection('admin').doc('credentials').get().then(function (docSnap) {
+        if (!docSnap.exists) {
+            errorEl.textContent = 'لم يتم تهيئة بيانات الدخول';
+            return;
+        }
+        var creds = docSnap.data();
+        hashString(pass).then(function (passHash) {
+            if (user === creds.username && passHash === creds.passwordHash) {
+                // Generate session token
+                var sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+                sessionStorage.setItem('coffeemarket_admin', sessionToken);
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                initializeAdmin();
+            } else {
+                errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+            }
+        });
+    }).catch(function () {
+        errorEl.textContent = 'حدث خطأ أثناء التحقق من البيانات';
+    });
 }
 
 function logout() {
