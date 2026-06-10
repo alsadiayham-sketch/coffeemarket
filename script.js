@@ -36,9 +36,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fallback if Firestore takes too long
     setTimeout(function () {
         if (!storeLoadState.products || !storeLoadState.discounts || !storeLoadState.settings) {
-            applyFallbackStoreData('');
+            // Only apply fallback if we truly have no data yet
+            if (products.length === 0) {
+                applyFallbackStoreData('');
+            } else {
+                // Products loaded but discounts/settings didn't - force render anyway
+                storeLoadState.products = true;
+                storeLoadState.discounts = true;
+                storeLoadState.settings = true;
+                setLoadingState(false);
+                renderStorefront();
+            }
         }
-    }, 6000);
+    }, 10000);
 });
 
 function setLoadingState(isLoading) {
@@ -90,30 +100,21 @@ function subscribeToStoreData() {
             syncCartWithProducts();
             markStoreLoaded('products');
         }
-        // Now subscribe to all products for real-time updates
-        unsubscribers.push(db.collection('products').onSnapshot(function (fullSnapshot) {
-            products = fullSnapshot.docs.map(function (docSnap) {
-                var d = docSnap.data(); d.id = docSnap.id; return normalizeProduct(d);
-            }).sort(function (a, b) { return a.id - b.id; });
-            syncCartWithProducts();
-            markStoreLoaded('products');
-        }, function () {
-            if (!storeLoadState.products) applyFallbackStoreData('تعذر تحميل المنتجات من فايرستور، تم استخدام البيانات الاحتياطية.');
-            else setStoreMessage('تعذر تحديث المنتجات حالياً.', 'error');
-        }));
     }).catch(function () {
-        // Fallback to full subscription if initial fetch fails
-        unsubscribers.push(db.collection('products').onSnapshot(function (snapshot) {
-            products = snapshot.docs.map(function (docSnap) {
-                var d = docSnap.data(); d.id = docSnap.id; return normalizeProduct(d);
-            }).sort(function (a, b) { return a.id - b.id; });
-            syncCartWithProducts();
-            markStoreLoaded('products');
-        }, function () {
-            if (!storeLoadState.products) applyFallbackStoreData('تعذر تحميل المنتجات من فايرستور، تم استخدام البيانات الاحتياطية.');
-            else setStoreMessage('تعذر تحديث المنتجات حالياً.', 'error');
-        }));
+        // Initial fetch failed, rely on onSnapshot below
     });
+
+    // Subscribe to all products for real-time updates (always runs)
+    unsubscribers.push(db.collection('products').onSnapshot(function (fullSnapshot) {
+        products = fullSnapshot.docs.map(function (docSnap) {
+            var d = docSnap.data(); d.id = docSnap.id; return normalizeProduct(d);
+        }).sort(function (a, b) { return a.id - b.id; });
+        syncCartWithProducts();
+        markStoreLoaded('products');
+    }, function () {
+        if (!storeLoadState.products) applyFallbackStoreData('تعذر تحميل المنتجات من فايرستور، تم استخدام البيانات الاحتياطية.');
+        else setStoreMessage('تعذر تحديث المنتجات حالياً.', 'error');
+    }));
 
     unsubscribers.push(db.collection('discounts').onSnapshot(function (snapshot) {
         discounts = snapshot.docs.map(function (docSnap) {
