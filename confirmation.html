@@ -108,6 +108,9 @@
                     if (item.notes) meta += '<span class="order-item-note">ملاحظات: ' + escapeHtml(item.notes) + '</span>';
                     return '<div class="order-item"><div><span class="order-item-name">' + getCustomPackageTitle(item) + '</span>' + meta + '</div><span class="order-item-price pending">يحدد لاحقاً</span></div>';
                 }
+                if (item.type === 'package') {
+                    return '<div class="order-item"><div><span class="order-item-name">📦 ' + (item.name || 'باكيج') + '</span><span class="order-item-qty">x' + item.qty + '</span></div><span class="order-item-price">' + formatCurrency(item.lineTotal) + '</span></div>';
+                }
                 return '<div class="order-item"><div><span class="order-item-name">' + item.name + '</span><span class="order-item-qty">' + item.brand + ' • ' + item.sizeLabel + ' • x' + item.qty + '</span></div><span class="order-item-price">' + formatCurrency(item.lineTotal) + '</span></div>';
             }).join('');
             var totalItems = (order.items || []).reduce(function (sum, item) { return sum + (parseInt(item.qty, 10) || 1); }, 0);
@@ -128,6 +131,9 @@
             var itemsText = (order.items || []).map(function (item, index) {
                 if (item.type === 'custom_package') {
                     return (index + 1) + '. ' + item.name + '\n   لون التغليف: ' + getWrapperColorLabel(item.wrapperColor) + '\n   السعر: يحدد لاحقاً';
+                }
+                if (item.type === 'package') {
+                    return (index + 1) + '. 📦 ' + (item.name || 'باكيج') + '\n   السعر: ' + item.price + ' شيكل × ' + item.qty + ' = ' + item.lineTotal + ' شيكل';
                 }
                 return (index + 1) + '. ' + item.name + ' (' + item.sizeLabel + ')\n   السعر: ' + item.price + ' شيكل × ' + item.qty + ' = ' + item.lineTotal + ' شيكل';
             }).join('\n');

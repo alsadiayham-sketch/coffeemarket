@@ -99,6 +99,17 @@
         </div>
     </section>
 
+    <!-- Packages Hot Section -->
+    <section class="packages-section" id="packagesSection" style="display:none;">
+        <div class="container">
+            <h2 class="section-title">باكجات بسعر خاص</h2>
+            <div class="packages-inline-grid" id="packagesInlineGrid"></div>
+            <div class="packages-view-more" id="packagesViewMore" style="display:none;">
+                <button class="btn-view-more" onclick="toggleAllPackages()">عرض المزيد</button>
+            </div>
+        </div>
+    </section>
+
     <section class="products-section">
         <div class="container products-shell">
             <div class="store-loading" id="storeLoading">
@@ -179,6 +190,19 @@
                 <h3 data-i18n="relatedProducts">منتجات مشابهة</h3>
                 <div class="pdp-related-grid" id="pdpRelatedGrid"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Packages Modal -->
+    <div class="modal-overlay combo-overlay" id="packagesModal" style="display:none;" onclick="closePackagesPopup()">
+        <div class="combo-modal packages-modal-content" onclick="event.stopPropagation()">
+            <button class="pdp-close" onclick="closePackagesPopup()">✕</button>
+            <div class="combo-modal-header">
+                <span class="combo-icon">📦</span>
+                <h2>باكجاتنا الخاصة</h2>
+                <p>اختار باكيج كامل بسعر مميز</p>
+            </div>
+            <div class="packages-grid" id="packagesGrid"></div>
         </div>
     </div>
 

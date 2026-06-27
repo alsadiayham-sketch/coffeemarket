@@ -210,6 +210,18 @@ function getTotalDisplayText(total, hasPending) {
 function normalizeCartItems(items, products) {
     return (Array.isArray(items) ? items : []).map(function (item) {
         if (isCustomPackageItem(item)) return normalizeCustomPackageItem(item);
+        // Preserve package items as-is
+        if (item.type === 'package') {
+            return {
+                id: String(item.id),
+                type: 'package',
+                packageName: item.packageName || '',
+                packageProducts: item.packageProducts || [],
+                qty: Math.max(1, parseInt(item.qty, 10) || 1),
+                price: Math.max(0, Number(item.price) || 0),
+                sizeIdx: 0
+            };
+        }
         var itemId = item.id;
         var product = Array.isArray(products) ? products.find(function (entry) { return String(entry.id) === String(itemId); }) : null;
         var sizesLength = product && Array.isArray(product.sizes) && product.sizes.length ? product.sizes.length : 1;

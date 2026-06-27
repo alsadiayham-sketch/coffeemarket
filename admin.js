@@ -10,6 +10,8 @@ function hashString(str) {
 var products = [];
 var discounts = [];
 var orders = [];
+var packages = [];
+var packageSelectedProducts = [];
 var siteSettings = normalizeSettings(DEFAULT_SITE_SETTINGS);
 var unsubscribers = [];
 var charts = {};
@@ -149,6 +151,16 @@ function switchTab(tab, button) {
     if (tab === 'hero') loadHeroSlides();
 }
 
+function switchInnerTab(parentTab, innerTabId, button) {
+    var parent = document.getElementById('tab-' + parentTab);
+    if (!parent) return;
+    parent.querySelectorAll('.inner-tab-content').forEach(function (c) { c.classList.remove('active'); });
+    parent.querySelectorAll('.inner-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    var target = document.getElementById(innerTabId);
+    if (target) target.classList.add('active');
+    if (button) button.classList.add('active');
+}
+
 async function initializeAdmin() {
     if (isInitializing) return;
     isInitializing = true;
@@ -191,6 +203,7 @@ function subscribeToCollections() {
         adminReady.products = true;
         renderProductsTable();
         renderDiscountValueOptions();
+        renderPackagesList();
         checkAdminReady();
     }, function (error) {
         console.error(error);
@@ -234,6 +247,11 @@ function subscribeToCollections() {
         console.error(error);
         setAdminStatus('تعذر تحميل الإعدادات.', 'error');
         setAdminLoading(false);
+    }));
+
+    unsubscribers.push(db.collection('packages').onSnapshot(function (snapshot) {
+        packages = snapshot.docs.map(function (docSnap) { var d = docSnap.data(); d.id = docSnap.id; return d; });
+        renderPackagesList();
     }));
 }
 
@@ -596,6 +614,9 @@ function renderOrdersTable() {
 
 function renderOrderDetails(order) {
     var itemsHtml = (order.items || []).map(function (item) {
+        if (item.type === 'package') {
+            return '<div class="order-item-card"><div class="order-item-content"><div class="order-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:#f0ece4;">📦</div><div><strong>' + (item.name || 'باكيج') + '</strong><div>' + ((item.packageProducts || []).length ? 'عدد المنتجات: ' + item.packageProducts.length : 'باقة ثابتة') + '</div><div>الكمية: ' + item.qty + ' • السعر: ' + formatCurrency(item.price) + ' • الإجمالي: ' + formatCurrency(item.lineTotal) + '</div></div></div></div>';
+        }
         return '<div class="order-item-card"><div class="order-item-content">' + (item.image ? '<img src="' + item.image + '" class="order-item-img" onerror="this.style.display=\'none\'">' : '') + '<div><strong>' + item.name + '</strong><div>' + item.brand + ' • ' + item.sizeLabel + '</div><div>الكمية: ' + item.qty + ' • السعر: ' + formatCurrency(item.price) + ' • الإجمالي: ' + formatCurrency(item.lineTotal) + '</div></div></div></div>';
     }).join('');
 
@@ -1075,4 +1096,122 @@ function deleteHeroSlide(id) {
     db.collection('heroDisplay').doc(id).delete().then(function() {
         loadHeroSlides();
     });
+}
+
+function renderPackagesList() {
+    var container = document.getElementById('packagesListContainer');
+    if (!container) return;
+    if (packages.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:#888;"><p>لا توجد باكجات حالياً</p></div>';
+        return;
+    }
+    container.innerHTML = packages.map(function(pkg) {
+        var productsHTML = (pkg.products || []).map(function(pid) {
+            var p = products.find(function(pr) { return pr.id === pid; });
+            if (!p) return '';
+            return '<img src="' + p.image + '" alt="' + p.name + '" title="' + p.name + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">';
+        }).join('');
+        return '<div class="package-card">' +
+            '<div class="package-card-header"><h4>📦 ' + (pkg.name || 'باكيج') + '</h4><div class="package-card-actions"><button onclick="editPackage(\'' + pkg.id + '\')" title="تعديل">✏️</button><button onclick="deletePackage(\'' + pkg.id + '\')" title="حذف">🗑️</button></div></div>' +
+            '<div class="package-card-price">₪' + (pkg.price || 0) + '</div>' +
+            '<div class="package-card-products">' + productsHTML + '</div>' +
+            (pkg.description ? '<div class="package-card-desc">' + pkg.description + '</div>' : '') +
+            '</div>';
+    }).join('');
+}
+
+function openPackageModal(existing) {
+    var modal = document.getElementById('packageModal');
+    if (!modal) return;
+    document.getElementById('packageModalTitle').textContent = existing ? 'تعديل الباكيج' : 'إضافة باكيج جديد';
+    document.getElementById('packageId').value = existing ? existing.id : '';
+    document.getElementById('packageName').value = existing ? (existing.name || '') : '';
+    document.getElementById('packagePrice').value = existing ? (existing.price || 100) : 100;
+    document.getElementById('packageDesc').value = existing ? (existing.description || '') : '';
+    packageSelectedProducts = existing ? (existing.products || []).slice() : [];
+    renderPackageProductsGrid();
+    modal.style.display = 'flex';
+}
+
+function editPackage(pkgId) {
+    var pkg = packages.find(function(p) { return p.id === pkgId; });
+    if (pkg) openPackageModal(pkg);
+}
+
+function renderPackageProductsGrid() {
+    var grid = document.getElementById('packageProductsGrid');
+    if (!grid) return;
+    var search = (document.getElementById('packageProductSearch') || {}).value || '';
+    var filtered = products.filter(function(p) {
+        if (!search.trim()) return true;
+        return p.name.indexOf(search.trim()) !== -1 || (p.brand || '').indexOf(search.trim()) !== -1;
+    });
+    grid.innerHTML = filtered.map(function(p) {
+        var isSelected = packageSelectedProducts.indexOf(p.id) !== -1;
+        return '<div class="offer-product-item' + (isSelected ? ' selected' : '') + '" onclick="togglePackageProduct(\'' + p.id + '\')">' +
+            '<img src="' + p.image + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'">' +
+            '<span>' + p.name + '</span>' +
+            (isSelected ? '<span class="offer-product-check">✓</span>' : '') +
+            '</div>';
+    }).join('');
+    var countEl = document.getElementById('packageSelectedCount');
+    if (countEl) countEl.textContent = packageSelectedProducts.length;
+}
+
+function filterPackageProducts() { renderPackageProductsGrid(); }
+
+function togglePackageProduct(pid) {
+    var idx = packageSelectedProducts.indexOf(pid);
+    if (idx !== -1) packageSelectedProducts.splice(idx, 1);
+    else packageSelectedProducts.push(pid);
+    renderPackageProductsGrid();
+}
+
+async function savePackage() {
+    var id = document.getElementById('packageId').value;
+    var name = document.getElementById('packageName').value.trim();
+    var price = parseFloat(document.getElementById('packagePrice').value) || 100;
+    var description = document.getElementById('packageDesc').value.trim();
+
+    if (!name) return alert('الرجاء إدخال اسم الباكيج');
+    if (packageSelectedProducts.length < 2) return alert('الرجاء اختيار منتجين على الأقل');
+
+    var data = {
+        type: 'package',
+        name: name,
+        price: price,
+        description: description,
+        products: packageSelectedProducts.slice(),
+        active: true,
+        updatedAt: new Date().toISOString()
+    };
+
+    setAdminLoading(true);
+    try {
+        if (id) {
+            await db.collection('packages').doc(id).set(data, { merge: true });
+        } else {
+            data.createdAt = new Date().toISOString();
+            await db.collection('packages').add(data);
+        }
+        closeModal('packageModal');
+        setAdminStatus('تم حفظ الباكيج بنجاح!', 'success');
+    } catch (err) {
+        console.error(err);
+        setAdminStatus('فشل حفظ الباكيج: ' + err.message, 'error');
+    }
+    setAdminLoading(false);
+}
+
+async function deletePackage(pkgId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الباكيج؟')) return;
+    setAdminLoading(true);
+    try {
+        await db.collection('packages').doc(pkgId).delete();
+        setAdminStatus('تم حذف الباكيج.', 'success');
+    } catch (err) {
+        console.error(err);
+        setAdminStatus('فشل حذف الباكيج: ' + err.message, 'error');
+    }
+    setAdminLoading(false);
 }

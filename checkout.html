@@ -185,6 +185,17 @@
 
             var itemsHTML = cart.map(function (item) {
                 if (item.type === 'custom_package') return renderCustomCheckoutItem(item);
+                if (item.type === 'package') {
+                    var productNames = (item.packageProducts || []).map(function(pid) {
+                        var packageProduct = products.find(function (entry) { return String(entry.id) === String(pid); });
+                        return packageProduct ? packageProduct.name : '';
+                    }).filter(Boolean).join('، ');
+                    var productImages = (item.packageProducts || []).slice(0, 4).map(function(pid) {
+                        var packageProduct = products.find(function (entry) { return String(entry.id) === String(pid); });
+                        return packageProduct ? '<img src="' + packageProduct.image + '" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" onerror="this.style.display=\'none\'">' : '';
+                    }).join('');
+                    return '<div class="checkout-item"><div style="display:flex;gap:4px;flex-wrap:wrap;width:60px;">' + productImages + '</div><div class="checkout-item-info"><h4>📦 ' + (item.packageName || 'باكيج') + '</h4><span class="item-brand" style="font-size:0.75rem;color:#6b7280;">' + productNames + '</span></div><div class="checkout-item-qty"><button onclick="changeQty(\'' + item.id + '\', 0, -1)">−</button><span>' + item.qty + '</span><button onclick="changeQty(\'' + item.id + '\', 0, 1)">+</button></div><div class="checkout-item-price">₪' + ((Number(item.price) || 0) * item.qty) + '</div><button class="checkout-item-remove" onclick="removeItem(\'' + item.id + '\', 0)">✕</button></div>';
+                }
                 var product = products.find(function (entry) { return entry.id === item.id; });
                 if (!product) return '';
                 var sizeData = getSizeData(product, item.sizeIdx);
@@ -243,6 +254,7 @@
         function getSubtotal() {
             return cart.reduce(function (sum, item) {
                 if (item.type === 'custom_package') return sum;
+                if (item.type === 'package') return sum + ((Number(item.price) || 0) * item.qty);
                 var product = products.find(function (entry) { return entry.id === item.id; });
                 return product ? sum + getFinalPrice(product, item.sizeIdx, discounts).final * item.qty : sum;
             }, 0);
@@ -350,6 +362,17 @@
                             lineTotal: null
                         };
                     }
+                    if (item.type === 'package') {
+                        return {
+                            type: 'package',
+                            packageId: item.packageId || item.id,
+                            name: item.packageName || 'باكيج',
+                            packageProducts: item.packageProducts || [],
+                            qty: item.qty,
+                            price: Number(item.price) || 0,
+                            lineTotal: (Number(item.price) || 0) * item.qty
+                        };
+                    }
                     var product = products.find(function (entry) { return entry.id === item.id; });
                     if (!product) {
                         return {
@@ -403,6 +426,9 @@
                     var locationLine = item.delivery === 'delivery' && item.customerLocation ? '\n   الموقع: ' + item.customerLocation : '';
                     var noteLine = item.notes ? '\n   ملاحظات: ' + item.notes : '';
                     return (index + 1) + '. ' + item.name + '\n   لون التغليف: ' + getWrapperColorLabel(item.wrapperColor) + '\n' + packageLines + '\n   الاستلام: ' + (item.delivery === 'pickup' ? 'استلام من المصنع' : 'توصيل') + '\n   الاسم: ' + item.customerName + ' • الهاتف: ' + item.customerPhone + locationLine + noteLine + '\n   السعر: يحدد لاحقاً';
+                }
+                if (item.type === 'package') {
+                    return (index + 1) + '. 📦 ' + (item.name || 'باكيج') + '\n   السعر: ' + item.price + ' شيكل × ' + item.qty + ' = ' + item.lineTotal + ' شيكل';
                 }
                 return (index + 1) + '. ' + item.name + ' (' + item.sizeLabel + ')\n   السعر: ' + item.price + ' شيكل × ' + item.qty + ' = ' + item.lineTotal + ' شيكل';
             }).join('\n');

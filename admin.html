@@ -54,42 +54,61 @@
         </div>
 
         <div class="tab-content" id="tab-products">
-            <div class="tab-header">
-                <h3>إدارة المنتجات والخصومات</h3>
-                <div class="header-actions">
-                    <button class="btn-add" onclick="openProductModal()">إضافة منتج</button>
+            <div class="inner-tabs">
+                <button class="inner-tab-btn active" onclick="switchInnerTab('products', 'innerProducts', this)">المنتجات</button>
+                <button class="inner-tab-btn" onclick="switchInnerTab('products', 'innerDiscounts', this)">الخصومات</button>
+                <button class="inner-tab-btn" onclick="switchInnerTab('products', 'innerPackages', this)">الباكجات</button>
+            </div>
+
+            <div class="inner-tab-content active" id="innerProducts">
+                <div class="tab-header">
+                    <h3>إدارة المنتجات</h3>
+                    <div class="header-actions">
+                        <button class="btn-add" onclick="openProductModal()">إضافة منتج</button>
+                    </div>
+                </div>
+                <div class="bulk-actions-bar" id="bulkActionsBar" style="display:none;">
+                    <span id="bulkSelectedCount">0</span> منتج محدد
+                    <select id="bulkStatusSelect">
+                        <option value="">تغيير الحالة...</option>
+                        <option value="normal">عادي</option>
+                        <option value="bestseller">الأكثر مبيعاً</option>
+                        <option value="special">مميز</option>
+                        <option value="soldout">نفذت الكمية</option>
+                    </select>
+                    <button class="btn-bulk-status" onclick="bulkChangeStatus()">تطبيق</button>
+                    <input type="number" id="bulkDiscountInput" min="0" max="99" placeholder="خصم %">
+                    <button class="btn-bulk-discount" onclick="bulkApplyDiscount()">تطبيق خصم</button>
+                    <button class="btn-bulk-delete" onclick="bulkDeleteProducts()">حذف المحدد</button>
+                </div>
+                <div class="products-table-container">
+                    <table class="admin-table" id="productsTable">
+                        <thead><tr><th><input type="checkbox" id="selectAllProducts" onchange="toggleSelectAll(this)"></th><th>صورة</th><th>اسم المنتج</th><th>الماركة</th><th>الفئة</th><th>الأحجام</th><th>الأسعار</th><th>خصم</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="bulk-actions-bar" id="bulkActionsBar" style="display:none;">
-                <span id="bulkSelectedCount">0</span> منتج محدد
-                <select id="bulkStatusSelect">
-                    <option value="">تغيير الحالة...</option>
-                    <option value="normal">عادي</option>
-                    <option value="bestseller">الأكثر مبيعاً</option>
-                    <option value="special">مميز</option>
-                    <option value="soldout">نفذت الكمية</option>
-                </select>
-                <button class="btn-bulk-status" onclick="bulkChangeStatus()">تطبيق</button>
-                <input type="number" id="bulkDiscountInput" min="0" max="99" placeholder="خصم %">
-                <button class="btn-bulk-discount" onclick="bulkApplyDiscount()">تطبيق خصم</button>
-                <button class="btn-bulk-delete" onclick="bulkDeleteProducts()">حذف المحدد</button>
-            </div>
-            <div class="products-table-container">
-                <table class="admin-table" id="productsTable">
-                    <thead><tr><th><input type="checkbox" id="selectAllProducts" onchange="toggleSelectAll(this)"></th><th>صورة</th><th>اسم المنتج</th><th>الماركة</th><th>الفئة</th><th>الأحجام</th><th>الأسعار</th><th>خصم</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-                    <tbody id="productsTableBody"></tbody>
+
+            <div class="inner-tab-content" id="innerDiscounts">
+                <div class="tab-header">
+                    <h3>إدارة الخصومات</h3>
+                    <button class="btn-add" onclick="openDiscountModal()">إضافة خصم</button>
+                </div>
+                <div class="discount-info"><p>يمكنك إضافة خصومات على جميع المنتجات، حسب الماركة أو الفئة (مع إمكانية اختيار أكثر من واحد)، أو خصومات يدوية. يمكنك تحديد تاريخ انتهاء للخصم.</p></div>
+                <table class="admin-table" id="discountsTable">
+                    <thead><tr><th>النوع</th><th>القيمة</th><th>نسبة الخصم</th><th>ينتهي</th><th>الوصف</th><th>إجراءات</th></tr></thead>
+                    <tbody id="discountsTableBody"></tbody>
                 </table>
             </div>
 
-            <div class="tab-header nested-header">
-                <h3>إدارة الخصومات</h3>
-                <button class="btn-add" onclick="openDiscountModal()">إضافة خصم</button>
+            <div class="inner-tab-content" id="innerPackages">
+                <div class="tab-header">
+                    <h3>إدارة الباكجات</h3>
+                    <button class="btn-add" onclick="openPackageModal()">إضافة باكيج</button>
+                </div>
+                <p style="color:#6b7280; margin-bottom:12px; font-size:0.85rem;">باكجات ثابتة من منتجات محددة بسعر واحد. الزبون يشتري الباكج كامل بدون تعديل.</p>
+                <div class="packages-list" id="packagesListContainer"></div>
             </div>
-            <div class="discount-info"><p>يمكنك إضافة خصومات على جميع المنتجات، حسب الماركة أو الفئة (مع إمكانية اختيار أكثر من واحد)، أو خصومات يدوية. يمكنك تحديد تاريخ انتهاء للخصم.</p></div>
-            <table class="admin-table" id="discountsTable">
-                <thead><tr><th>النوع</th><th>القيمة</th><th>نسبة الخصم</th><th>ينتهي</th><th>الوصف</th><th>إجراءات</th></tr></thead>
-                <tbody id="discountsTableBody"></tbody>
-            </table>
         </div>
 
         <div class="tab-content" id="tab-orders">
@@ -182,6 +201,26 @@
                 <div class="form-group"><label>تاريخ الانتهاء (اختياري)</label><input type="date" id="discountExpiry"></div>
                 <div class="form-group"><label>وصف الخصم (يظهر في البانر)</label><input type="text" id="discountDescription" placeholder="خصم 20% على جميع منتجات..." required></div>
                 <div class="modal-actions"><button type="submit" class="btn-save">حفظ</button><button type="button" class="btn-cancel" onclick="closeModal('discountModal')">إلغاء</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Package Modal -->
+    <div class="modal-overlay" id="packageModal" style="display:none;">
+        <div class="modal modal-content">
+            <h3 id="packageModalTitle">إضافة باكيج جديد</h3>
+            <form onsubmit="event.preventDefault(); savePackage();">
+                <input type="hidden" id="packageId">
+                <div class="form-group"><label>اسم الباكيج</label><input type="text" id="packageName" placeholder="مثال: باكيج القهوة الكامل" required></div>
+                <div class="form-group"><label>سعر الباكيج (₪)</label><input type="number" id="packagePrice" value="100" min="1" required></div>
+                <div class="form-group"><label>وصف (اختياري)</label><input type="text" id="packageDesc" placeholder="وصف قصير يظهر للزبون"></div>
+                <div class="form-group">
+                    <label>اختر المنتجات للباكيج</label>
+                    <div class="offer-products-search"><input type="text" id="packageProductSearch" placeholder="ابحث عن منتج..." oninput="filterPackageProducts()"></div>
+                    <div class="offer-products-grid" id="packageProductsGrid"></div>
+                    <small style="color:#888;margin-top:5px;display:block;"><span id="packageSelectedCount">0</span> منتج مختار</small>
+                </div>
+                <div class="modal-actions"><button type="submit" class="btn-save">حفظ الباكيج</button><button type="button" class="btn-cancel" onclick="closeModal('packageModal')">إلغاء</button></div>
             </form>
         </div>
     </div>

@@ -17,6 +17,7 @@ var currentPDPProduct = null;
 var currentPDPSizeIdx = 0;
 var pdpQty = 1;
 var usedFallbackData = false;
+var storePackages = [];
 var unsubscribers = [];
 var storeLoadState = {
     products: false,
@@ -141,6 +142,17 @@ function subscribeToStoreData() {
         heroSlides = snapshot.docs.map(function(doc) { return doc.data(); });
         renderHeroSlider(heroSlides);
     }, function() { /* keep static fallback */ }));
+
+    // Subscribe to packages
+    unsubscribers.push(db.collection('packages').onSnapshot(function (snapshot) {
+        storePackages = [];
+        snapshot.forEach(function(doc) {
+            var d = doc.data();
+            d.id = doc.id;
+            if (d.active !== false) storePackages.push(d);
+        });
+        renderPackagesBanner();
+    }, function () { /* ignore */ }));
 }
 
 function applyFallbackStoreData(message) {
@@ -670,6 +682,7 @@ function renderCustomPackageCartItem(item) {
 function getCartKnownTotal() {
     return cart.reduce(function (sum, item) {
         if (item.type === 'custom_package') return sum;
+        if (item.type === 'package') return sum + (Math.max(0, Number(item.price) || 0) * item.qty);
         var product = products.find(function (entry) { return entry.id === item.id; });
         return product ? sum + getFinalPrice(product, item.sizeIdx, discounts).final * item.qty : sum;
     }, 0);
@@ -830,6 +843,13 @@ function renderCart() {
     footer.style.display = 'block';
     container.innerHTML = cart.map(function (item) {
         if (item.type === 'custom_package') return renderCustomPackageCartItem(item);
+        if (item.type === 'package') {
+            var productNames = (item.packageProducts || []).map(function(pid) {
+                var packageProduct = products.find(function (entry) { return String(entry.id) === String(pid); });
+                return packageProduct ? packageProduct.name : '';
+            }).filter(Boolean).join('، ');
+            return '<div class="cart-item"><div style="width:55px;height:55px;background:var(--primary-lighter);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📦</div><div class="cart-item-info"><h4>' + (item.packageName || 'باكيج') + '</h4><span class="cart-item-brand">' + productNames + '</span><div class="cart-item-price">' + formatCurrency((Number(item.price) || 0) * item.qty) + '</div></div><div class="cart-item-qty"><button onclick="updateCartQty(\'' + item.id + '\', 0, -1)">−</button><span>' + item.qty + '</span><button onclick="updateCartQty(\'' + item.id + '\', 0, 1)">+</button></div><button class="cart-item-remove" onclick="removeFromCart(\'' + item.id + '\', 0)">✕</button></div>';
+        }
         var product = products.find(function (entry) { return entry.id === item.id; });
         if (!product) return '';
         var pricing = getFinalPrice(product, item.sizeIdx, discounts);
@@ -837,6 +857,10 @@ function renderCart() {
     }).join('');
 
     updateCheckoutLink(updateCartTotal());
+}
+
+function renderCartItems() {
+    renderCart();
 }
 
 function updateCartQty(productId, sizeIdx, delta) {
@@ -1087,4 +1111,106 @@ function addFromPDP() {
         btn.classList.remove('added');
         closePDP();
     }, 1200);
+}
+
+var packagesShowAll = false;
+var PACKAGES_INITIAL_COUNT = 3;
+
+function renderPackagesBanner() {
+    renderPackagesSection();
+}
+
+function renderPackagesSection() {
+    var section = document.getElementById('packagesSection');
+    if (!section) return;
+    if (storePackages.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+
+    var grid = document.getElementById('packagesInlineGrid');
+    var viewMore = document.getElementById('packagesViewMore');
+    if (!grid) return;
+
+    var visible = packagesShowAll ? storePackages : storePackages.slice(0, PACKAGES_INITIAL_COUNT);
+    grid.innerHTML = visible.map(function(pkg) {
+        var productsHTML = (pkg.products || []).map(function(pid) {
+            var p = products.find(function(pr) { return pr.id === pid; });
+            if (!p) return '';
+            return '<div class="pkg-product-item"><img src="' + p.image + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><span>' + p.name + '</span></div>';
+        }).join('');
+        return '<div class="pkg-inline-card">' +
+            '<div class="pkg-inline-header"><h3>' + (pkg.name || 'باكيج') + '</h3><div class="pkg-price">₪' + (pkg.price || 0) + '</div></div>' +
+            (pkg.description ? '<p class="pkg-desc">' + pkg.description + '</p>' : '') +
+            '<div class="pkg-products-list">' + productsHTML + '</div>' +
+            '<button class="pkg-add-btn" onclick="addPackageToCart(\'' + pkg.id + '\')">أضف للسلة</button>' +
+            '</div>';
+    }).join('');
+
+    if (viewMore) {
+        if (storePackages.length > PACKAGES_INITIAL_COUNT) {
+            viewMore.style.display = 'block';
+            viewMore.querySelector('.btn-view-more').textContent = packagesShowAll ? 'عرض أقل' : 'عرض المزيد (' + storePackages.length + ')';
+        } else {
+            viewMore.style.display = 'none';
+        }
+    }
+}
+
+function toggleAllPackages() {
+    packagesShowAll = !packagesShowAll;
+    renderPackagesSection();
+}
+
+function openPackagesPopup() {
+    var modal = document.getElementById('packagesModal');
+    if (!modal) return;
+    var grid = document.getElementById('packagesGrid');
+    if (!grid) return;
+    grid.innerHTML = storePackages.map(function(pkg) {
+        var productsHTML = (pkg.products || []).map(function(pid) {
+            var p = products.find(function(pr) { return pr.id === pid; });
+            if (!p) return '';
+            return '<div class="pkg-product-item"><img src="' + p.image + '" onerror="this.src=\'' + FALLBACK_IMAGE + '\'"><span>' + p.name + '</span></div>';
+        }).join('');
+        return '<div class="pkg-card">' +
+            '<h3>' + (pkg.name || 'باكيج') + '</h3>' +
+            (pkg.description ? '<p class="pkg-desc">' + pkg.description + '</p>' : '') +
+            '<div class="pkg-price">₪' + (pkg.price || 0) + '</div>' +
+            '<div class="pkg-products-list">' + productsHTML + '</div>' +
+            '<button class="btn-primary pkg-add-btn" onclick="addPackageToCart(\'' + pkg.id + '\')">أضف للسلة</button>' +
+            '</div>';
+    }).join('');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePackagesPopup() {
+    var modal = document.getElementById('packagesModal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function addPackageToCart(pkgId) {
+    var pkg = storePackages.find(function(p) { return p.id === pkgId; });
+    if (!pkg) return;
+    var existingIdx = -1;
+    cart.forEach(function(item, i) { if (item.id === 'pkg__' + pkgId) existingIdx = i; });
+    if (existingIdx !== -1) {
+        cart[existingIdx].qty += 1;
+    } else {
+        cart.push({
+            id: 'pkg__' + pkgId,
+            type: 'package',
+            packageId: pkgId,
+            packageName: pkg.name,
+            packageProducts: pkg.products || [],
+            price: pkg.price || 0,
+            qty: 1,
+            sizeIdx: 0
+        });
+    }
+    saveCart();
+    updateCartBadge();
+    updateCheckoutLink(updateCartTotal());
+    renderCartItems();
+    closePackagesPopup();
 }
